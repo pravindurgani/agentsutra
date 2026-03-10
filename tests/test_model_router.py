@@ -91,14 +91,15 @@ class TestPurposeDependentOllamaRouting:
 
     @patch("tools.model_router._daily_spend_exceeds_threshold", return_value=True)
     @patch("tools.model_router._ollama_available", return_value=True)
-    @patch("tools.model_router._ram_below_threshold", return_value=True)
-    def test_budget_escalation_uses_qwen_for_classify(
-        self, _mock_ram: object, _mock_ollama: object, _mock_threshold: object,
+    def test_budget_escalation_skips_classify(
+        self, _mock_ollama: object, _mock_threshold: object,
     ) -> None:
-        """Budget escalation routes classify to qwen2.5:7b, not deepseek."""
-        provider, model = _select_model("classify", "low")
-        assert provider == "ollama"
-        assert model == "qwen2.5:7b"
+        """Classify is NOT budget-escalated — falls to Claude when RAM is 75-90%."""
+        # RAM at 80%: above Rule c threshold (75%) but below budget threshold (90%)
+        # Budget escalation would route plan→Ollama here, but classify should skip it
+        with patch("tools.model_router._ram_below_threshold", side_effect=lambda pct: pct == 90):
+            provider, _model = _select_model("classify", "low")
+        assert provider == "claude"
 
     def test_config_ollama_classify_model_env_override(self) -> None:
         """OLLAMA_CLASSIFY_MODEL env var is respected."""

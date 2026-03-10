@@ -177,6 +177,23 @@ def main():
     # Validate Ollama model availability (non-blocking — just logs a warning)
     ollama_ok = _check_ollama_model()
 
+    # Also check classify model (qwen2.5:7b) — separate from default model
+    if ollama_ok and config.OLLAMA_CLASSIFY_MODEL != config.OLLAMA_DEFAULT_MODEL:
+        try:
+            import requests as _req
+            r = _req.get(f"{config.OLLAMA_BASE_URL}/api/tags", timeout=3)
+            models = [m.get("name", "") for m in r.json().get("models", [])]
+            if config.OLLAMA_CLASSIFY_MODEL in models:
+                logger.info("Ollama classify model '%s' available", config.OLLAMA_CLASSIFY_MODEL)
+            else:
+                logger.warning(
+                    "Ollama classify model '%s' not found. "
+                    "Classify calls will fall back to Claude. Run: ollama pull %s",
+                    config.OLLAMA_CLASSIFY_MODEL, config.OLLAMA_CLASSIFY_MODEL,
+                )
+        except Exception as e:
+            logger.warning("Ollama classify model check failed: %s", e)
+
     # Smoke-test Ollama inference if model is available
     if ollama_ok:
         try:

@@ -1,9 +1,9 @@
-# AgentSutra v8.8.0 — Project Context for Claude Code
+# AgentSutra v9.0.0 — Project Context for Claude Code
 
 Single-user, self-hosted AI agent. Telegram-controlled. Mac Mini M2 (16GB).
 Fixed 5-stage LangGraph pipeline: Classify → Plan → Execute → Audit → Deliver.
 Cross-model adversarial auditing: Sonnet generates, Opus reviews.
-~7,876 LOC across 21 source files. ~11,000 LOC tests across 29 files. 840 test functions (804 passing, 36 skipped).
+~7,876 LOC across 21 source files. ~11,000 LOC tests across 29 files. 840 test functions (803 passing, 37 deselected).
 
 ## Architecture
 
@@ -18,7 +18,7 @@ Cross-model adversarial auditing: Sonnet generates, Opus reviews.
 ### File Map
 | File | Lines | Purpose |
 |------|------:|---------|
-| `main.py` | 240 | Entry point: env validation, DB init, crash recovery, Ollama startup test, SIGTERM handler, bot start |
+| `main.py` | 257 | Entry point: env validation, DB init, crash recovery, Ollama startup test (both models), SIGTERM handler, bot start |
 | `config.py` | 144 | All constants, paths, model names, timeouts, budget caps, crash-safe env parsing, RAG config |
 | `brain/state.py` | 64 | `AgentState` TypedDict — 25 fields flowing through pipeline |
 | `brain/graph.py` | 167 | LangGraph wiring, `run_task()`, stage tracking, node timing, duplicate error detection, task completion summary |
@@ -173,7 +173,7 @@ Dev machine uses `projects.yaml` with different local paths.
 ```bash
 just test-quick                           # skip Docker, stop on first failure
 just test-security                        # security-critical tests only
-pytest tests/ -v                          # all 840 tests (804 pass, 36 skip)
+pytest tests/ -v                          # all 840 tests (803 pass, 37 deselected)
 pytest tests/ -v -k "not docker"          # skip Docker-required tests
 pytest tests/test_sandbox.py -v           # sandbox + AST scanner + written-file scanning
 pytest tests/test_rag.py -v              # RAG context layer (22 tests)

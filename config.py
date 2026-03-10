@@ -2,7 +2,7 @@ import os
 from pathlib import Path
 from dotenv import load_dotenv
 
-VERSION = "8.8.0"
+VERSION = "9.0.0"
 
 load_dotenv(Path(__file__).resolve().parent / ".env")
 
