@@ -82,7 +82,7 @@ Cross-model adversarial auditing: Sonnet generates, Opus reviews.
 - **Tier 1** — 39 blocked patterns: `rm -rf`, `sudo`, `curl|sh`, `chmod 777`, `mkfs`, fork bombs, etc. Always blocked.
 - **Tier 1+ (v8.4.1)** — Full Python code text scanned against Tier 1 blocklist (catches shell patterns in strings/comments). Script file content scanned when `bash/sh` executes a file.
 - **Tier 3** — 12 audit-logged patterns: `rm`, `chmod`, `git push`, `curl`, `python3 -c`. Allowed but logged.
-- **Tier 4 (v8.5.2, hardened v8.7.0, v9.0.0)** — 50 code scanner patterns: credential reads, dangerous system calls, filesystem wipes, reverse shells, config imports, os.popen, dynamic code, getattr(os), base64 decode, ctypes, chr-chain obfuscation. Smart subprocess allowlist (AST-based). Smart importlib allowlist (AST-based, stdlib-only — blocks config/dotenv/dynamic args). Scans Python content.
+- **Tier 4 (v8.5.2, hardened v8.7.0, v9.0.0)** — 21 code scanner patterns + AST-based checks for importlib, subprocess, and shutil.rmtree: credential reads, dangerous system calls, filesystem wipes, reverse shells, config imports, os.popen, dynamic code, getattr(os), base64 decode, ctypes, chr-chain obfuscation. Smart subprocess allowlist (AST-based). Smart importlib allowlist (AST-based, stdlib-only — blocks config/dotenv/dynamic args). Scans Python content.
 - **Tier 5** — JS code scanner patterns for frontend tasks.
 - **Credential stripping** — `_filter_env()` removes API keys/tokens/secrets from subprocess env via exact match + substring. Applied to server processes too (v8.5.2).
 - **Docker isolation** — Optional container execution. Only `workspace/` mounted. All caps dropped, PIDs limited to 256.
@@ -173,7 +173,7 @@ Dev machine uses `projects.yaml` with different local paths.
 ```bash
 just test-quick                           # skip Docker, stop on first failure
 just test-security                        # security-critical tests only
-pytest tests/ -v                          # all 840 tests (803 pass, 37 deselected)
+pytest tests/ -v                          # all 840 tests (804 pass, 36 deselected)
 pytest tests/ -v -k "not docker"          # skip Docker-required tests
 pytest tests/test_sandbox.py -v           # sandbox + AST scanner + written-file scanning
 pytest tests/test_rag.py -v              # RAG context layer (22 tests)
