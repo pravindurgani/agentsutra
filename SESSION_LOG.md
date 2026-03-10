@@ -449,3 +449,24 @@ Keep entries concise. Do not delete old entries.
 <!-- session ended: 2026-03-10 18:22 -->
 
 <!-- session ended: 2026-03-10 18:23 -->
+
+<!-- session ended: 2026-03-10 19:42 -->
+
+<!-- session ended: 2026-03-10 19:48 -->
+
+<!-- session ended: 2026-03-10 19:51 -->
+
+<!-- session ended: 2026-03-10 19:51 -->
+
+### 2026-03-10 — v9.0.0 release readiness
+- **Done**: All 14 phases implemented (0a–0d, 1–9, 4b). Post-implementation audit completed: verified all line numbers, corrected phase count (11→14), importlib module count (19→54), source line total (~360→~306), variable name (_SAFE_IMPORTLIB_MODULES→_IMPORTLIB_SAFE_MODULES), test counts (804/36→803/37). Overhauled IMPLEMENTATION_PLAN.md from pre-implementation spec to post-implementation record (v3.0). Overhauled AgentSutra_Improvements_Report.md with full v9.0.0 details. Bumped config.py VERSION to "9.0.0". Added qwen2.5:7b startup check to main.py. Updated CLAUDE.md version and counts.
+- **Decisions**: Kept classify budget escalation as known limitation (XS fix deferred to v9.0.1). IMPLEMENTATION_PLAN.md converted to post-implementation record rather than maintaining two documents.
+- **Next**: Batch 1 (classify budget guard fix), Batch 2 (documentation debt), Batch 3 (Mac Mini ops + production test run).
+
+<!-- session ended: 2026-03-10 20:09 -->
+
+<!-- session ended: 2026-03-10 20:14 -->
+
+<!-- session ended: 2026-03-10 20:22 -->
+
+<!-- session ended: 2026-03-10 20:24 -->

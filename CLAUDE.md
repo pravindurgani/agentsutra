@@ -3,7 +3,7 @@
 Single-user, self-hosted AI agent. Telegram-controlled. Mac Mini M2 (16GB).
 Fixed 5-stage LangGraph pipeline: Classify → Plan → Execute → Audit → Deliver.
 Cross-model adversarial auditing: Sonnet generates, Opus reviews.
-~7,876 LOC across 21 source files. ~11,000 LOC tests across 29 files. 840 test functions (803 passing, 37 deselected).
+~8,165 LOC across 21 source files. ~11,574 LOC tests across 28 files. 840 test functions (804 passing, 36 deselected).
 
 ## Architecture
 

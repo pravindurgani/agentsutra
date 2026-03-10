@@ -160,7 +160,7 @@ AgentSutra/
 ├── config.py                # All config from .env
 ├── brain/
 │   ├── graph.py             # LangGraph state machine
-│   ├── state.py             # Pipeline state (24 fields)
+│   ├── state.py             # Pipeline state (25 fields)
 │   └── nodes/
 │       ├── classifier.py    # Routes to 1 of 7 task types
 │       ├── planner.py       # Generates execution plan
@@ -181,7 +181,7 @@ AgentSutra/
 │   └── projects.py          # YAML project registry loader
 ├── storage/db.py            # SQLite with WAL mode
 ├── scheduler/cron.py        # APScheduler with SQLite persistence
-├── tests/                   # 25 test files
+├── tests/                   # 28 test files
 ├── projects.yaml            # Your registered projects
 └── .env.example             # Configuration template
 ```
@@ -233,7 +233,7 @@ AgentSutra gives an LLM direct access to your machine. The security model is **d
 |-------|-------------|
 | **Authentication** | Telegram user ID allowlist. Unauthorized users silently ignored. |
 | **Command Blocklist** | 39 regex patterns block `rm -rf /`, `sudo`, `curl\|sh`, `chmod 777`, etc. |
-| **Code Scanner** | 51 patterns scan Python/JS for credential reads, exec/eval, os.popen, ctypes, base64 decode, obfuscation. AST constant folding catches string concatenation bypasses. Smart subprocess allowlist. Post-execution written-file scanning. |
+| **Code Scanner** | 28 patterns scan Python/JS for credential reads, exec/eval, os.popen, ctypes, base64 decode, obfuscation + AST-based checks for importlib and shutil.rmtree. AST constant folding catches string concatenation bypasses. Smart subprocess allowlist. Post-execution written-file scanning. |
 | **Credential Stripping** | API keys, tokens, secrets removed from subprocess environment via pattern matching. |
 | **Docker Isolation** | Optional hard filesystem boundary. Only `workspace/` is mounted read-write. |
 | **Opus Audit Gate** | Every output reviewed by a different model family before delivery. XML-delimited prompts resist injection. |
@@ -264,7 +264,7 @@ All configuration is via `.env`. See `.env.example` for the full template.
 | `COMPLEX_MODEL` | `claude-opus-4-6` | Model for auditing (should differ from default) |
 | `EXECUTION_TIMEOUT` | `120` | Single code execution timeout (seconds) |
 | `MAX_CODE_EXECUTION_TIMEOUT` | `600` | Hard cap on execution timeout |
-| `LONG_TIMEOUT` | `900` | Full pipeline timeout |
+| `LONG_TIMEOUT` | `1800` | Full pipeline timeout |
 | `MAX_RETRIES` | `3` | Audit retry attempts |
 | `DAILY_BUDGET_USD` | `0` | Daily API spend cap (0 = unlimited) |
 | `MONTHLY_BUDGET_USD` | `0` | Monthly API spend cap |
@@ -272,7 +272,8 @@ All configuration is via `.env`. See `.env.example` for the full template.
 | `MAX_CONCURRENT_TASKS` | `3` | Simultaneous pipeline executions |
 | `RAM_THRESHOLD_PERCENT` | `90` | Reject tasks above this RAM usage |
 | `OLLAMA_BASE_URL` | `http://localhost:11434` | Ollama API endpoint |
-| `OLLAMA_DEFAULT_MODEL` | `llama3.1:8b` | Default Ollama model |
+| `OLLAMA_DEFAULT_MODEL` | `deepseek-r1:14b` | Default Ollama model |
+| `OLLAMA_CLASSIFY_MODEL` | `qwen2.5:7b` | Ollama model for classification |
 | `DEPLOY_ENABLED` | `false` | Enable static deployment |
 | `DEPLOY_PROVIDER` | `github_pages` | `github_pages`, `vercel`, or `firebase` |
 | `DEPLOY_FIREBASE_PROJECT` | — | Firebase project ID |

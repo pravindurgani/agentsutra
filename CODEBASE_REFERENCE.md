@@ -2,9 +2,9 @@
 
 Every folder, file, and configuration in the AgentSutra project — what it is, what it does, and why it was built this way.
 
-**Generated:** 2026-02-24 (v8.0.0 baseline)
+**Generated:** 2026-02-24 (v8.0.0 baseline, updated 2026-03-10 for v9.0.0)
 
-> **Note:** This reference was written at v8.0.0. Versions 8.1.0–8.8.0 added: `tools/deployer.py` (static deployment), `tools/visual_check.py` (Playwright verification), `tools/rag.py` (RAG context layer with LanceDB + Ollama embeddings), server management in `tools/sandbox.py`, `/deploy`, `/servers`, `/stopserver`, `/reindex` commands, `server_url` and `deploy_url` in AgentState, Firebase Hosting support, visual check context in the auditor, Tier 1+ code/script scanning, AST constant folding scanner, smart subprocess allowlist, written-file scanning, truncation detection (Python + shell), fabrication detection, chain strict-AND gate with BLOCKED detection, anti-fabrication hardening (file ref validation, credential filter, path sanitisation), comprehensive third-pass security hardening (37 fixes), Ollama stabilisation (empty response retry, startup inference test), partial result preservation (`task_state`/`last_completed_stage` in DB), cost analytics with 7-day breakdown, `/retry` and `/setup` commands, budget >80% warning, temporal window expansion (30min→2hr), Justfile, pre-commit hooks, GitHub Actions CI, and launchd service. v8.8.0 added: shell truncation shebang-gated fix, credential filter expansion (Anthropic/Slack/Telegram patterns), budget escalation high-complexity guard, Ollama unclosed think-block handling, chain refusal tracking (`was_refused` field in AgentState), /deploy artifact fallback, path sanitisation for Linux, over-generation limits, RAG zero-vector index-time filtering, task completion log summary, timeout progress feedback with 80% warning, and file selector retry. See [AGENTSUTRA.md changelog](AGENTSUTRA.md#changelog) and [IMPLEMENTATION_SUMMARY.md](IMPLEMENTATION_SUMMARY.md) for full details.
+> **Note:** This reference was written at v8.0.0. Versions 8.1.0–8.8.0 added: `tools/deployer.py` (static deployment), `tools/visual_check.py` (Playwright verification), `tools/rag.py` (RAG context layer with LanceDB + Ollama embeddings), server management in `tools/sandbox.py`, `/deploy`, `/servers`, `/stopserver`, `/reindex` commands, `server_url` and `deploy_url` in AgentState, Firebase Hosting support, visual check context in the auditor, Tier 1+ code/script scanning, AST constant folding scanner, smart subprocess allowlist, written-file scanning, truncation detection (Python + shell), fabrication detection, chain strict-AND gate with BLOCKED detection, anti-fabrication hardening (file ref validation, credential filter, path sanitisation), comprehensive third-pass security hardening (37 fixes), Ollama stabilisation (empty response retry, startup inference test), partial result preservation (`task_state`/`last_completed_stage` in DB), cost analytics with 7-day breakdown, `/retry` and `/setup` commands, budget >80% warning, temporal window expansion (30min→2hr), Justfile, pre-commit hooks, GitHub Actions CI, and launchd service. v8.8.0 added: shell truncation shebang-gated fix, credential filter expansion (Anthropic/Slack/Telegram patterns), budget escalation high-complexity guard, Ollama unclosed think-block handling, chain refusal tracking (`was_refused` field in AgentState), /deploy artifact fallback, path sanitisation for Linux, over-generation limits, RAG zero-vector index-time filtering, task completion log summary, timeout progress feedback with 80% warning, and file selector retry. v9.0.0 added: purpose-dependent Ollama model routing (qwen2.5:7b for classify, deepseek-r1:14b for plan), classifier trigger context-awareness (mention-context exclusion), LONG_TIMEOUT increase to 1800s, plan complexity routing, duplicate error detection in retry loop, audit data sanity checks, HTML truncation detection, importlib smart allowlist (54 stdlib modules), shutil.rmtree AST-based hardening, was_refused executor guard, ARCHITECTURE.md per-project injection, shell truncation shebang gate fix, credential filter expansion (7 patterns), and Ollama health monitoring with /health display. See [AGENTSUTRA.md changelog](AGENTSUTRA.md#changelog) and [IMPLEMENTATION_SUMMARY.md](IMPLEMENTATION_SUMMARY.md) for full details.
 
 ---
 
@@ -34,13 +34,13 @@ Every folder, file, and configuration in the AgentSutra project — what it is, 
 
 AgentSutra is a self-hosted Telegram bot that receives natural language tasks, processes them through a 5-stage LangGraph pipeline (Classify → Plan → Execute → Audit → Deliver), and returns results. It runs on a Mac Mini M2 (16GB) for a single authenticated user.
 
-**Key numbers (v8.8.0):**
-- ~7,876 lines of application code across 21 source files
-- ~10,808 lines of test code across 27 test files
-- 782 total tests (771 passing, 11 skipped)
+**Key numbers (v9.0.0):**
+- ~8,165 lines of application code across 21 source files
+- ~11,574 lines of test code across 28 test files
+- 840 total tests (804 passing, 36 deselected)
 - 19 Telegram commands
 - 7 task types
-- 39 blocked command patterns (Tier 1 security) + full-text code scanning (Tier 1+) + 51 code scanner patterns (Tier 4/5)
+- 39 blocked command patterns (Tier 1 security) + full-text code scanning (Tier 1+) + 28 code scanner patterns (Tier 4/5) + AST-based checks for importlib and shutil.rmtree
 - 5-stage pipeline with cross-model auditing (Sonnet writes, Opus reviews)
 - 3 deployment providers (GitHub Pages, Vercel, Firebase)
 
@@ -48,7 +48,7 @@ AgentSutra is a self-hosted Telegram bot that receives natural language tasks, p
 
 ## Root Directory Files
 
-### `main.py` (212 lines, ~7 KB)
+### `main.py` (257 lines, ~9 KB)
 **Purpose:** Application entry point and boot sequence.
 
 **What it does:**
@@ -384,7 +384,7 @@ Package marker.
 - **Tiered command safety:**
   - Tier 1 (`_BLOCKED_PATTERNS`, 39 patterns): Always blocked. `rm -rf /`, `sudo`, `curl|sh`, `chmod 777`, `mkfs`, `cat|bash`, fork bombs, etc.
   - Tier 3 (`_LOGGED_PATTERNS`, 12 patterns): Allowed but logged. `rm`, `chmod`, `git push`, `curl`, `python3 -c`, etc.
-  - Tier 4 (`_CODE_BLOCKED_PATTERNS`, 51 patterns): Scans Python code content for credential reads, dangerous system calls, filesystem wipes, reverse shells, config imports, dynamic code, subprocess, obfuscation.
+  - Tier 4 (`_CODE_BLOCKED_PATTERNS`, 21 patterns + AST-based checks for importlib and shutil.rmtree): Scans Python code content for credential reads, dangerous system calls, filesystem wipes, reverse shells, config imports, dynamic code, obfuscation. Subprocess handled by AST-based `_is_safe_subprocess()` allowlist.
 - **Credential stripping:** `_filter_env()` removes API keys, tokens, secrets from subprocess environment via exact match and substring matching
 - **Docker execution:** `_run_code_docker()` executes code in an isolated container with only `workspace/` mounted read-write. Drops all capabilities, sets `no-new-privileges`, limits PIDs to 256.
 - **Subprocess execution:** `run_code()` and `run_shell()` use threaded Popen reading (v8 refactor) for live stdout streaming. Manual timeout with `os.killpg()` for process group kill.
