@@ -1,0 +1,172 @@
+---
+import { getCollection, render } from 'astro:content';
+import AgentThread from '../../components/AgentThread.astro';
+import BoundaryPanel from '../../components/BoundaryPanel.astro';
+import EvidencePanel from '../../components/EvidencePanel.astro';
+import FieldNoteHeader from '../../components/FieldNoteHeader.astro';
+import MemoryLine from '../../components/MemoryLine.astro';
+import SourcesList, { type SourceItem } from '../../components/SourcesList.astro';
+import UseToday from '../../components/UseToday.astro';
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import { getVisibleFieldNotes, loadPublicationGraph } from '../../lib/content';
+import { selectVisibleRelatedNotes } from '../../lib/related-notes';
+
+export async function getStaticPaths() {
+  const includeFixtures = process.env.INCLUDE_FIXTURES === '1';
+  const visible = await getVisibleFieldNotes({ includeFixtures });
+  const visibleIds = new Set(visible.map((note) => note.id));
+  const entries = await getCollection('fieldNotes');
+  return entries
+    .filter((entry) => visibleIds.has(entry.data.id))
+    .map((note) => ({ params: { slug: note.data.slug }, props: { note } }));
+}
+
+const { note } = Astro.props;
+const includeFixtures = process.env.INCLUDE_FIXTURES === '1';
+const graph = await loadPublicationGraph({ includeFixtures });
+const evidence = graph.evidencePacks.find((pack) => pack.id === note.data.evidencePackId);
+const diagram = graph.threadDiagrams.find((item) => item.id === note.data.diagramId);
+
+if (!evidence || !diagram) {
+  throw new Error(`Publication graph is incomplete for ${note.data.id}.`);
+}
+
+const { Content } = await render(note);
+const visibleNotes = await getVisibleFieldNotes({ includeFixtures });
+const related = selectVisibleRelatedNotes(
+  graph.fieldNotes,
+  visibleNotes,
+  note.data.relations.related,
+);
+const sources: SourceItem[] = evidence.evidence.map((item) => {
+  if (item.source.access === 'public') {
+    return {
+      title: item.source.label,
+      url: item.source.url,
+      note: item.limitation,
+      accessedAt: item.observedAt,
+    };
+  }
+  if (item.source.access === 'private') {
+    return {
+      title: 'Sanitised private evidence',
+      note: `${item.source.publicDescription} Boundary: ${item.limitation}`,
+      accessedAt: item.observedAt,
+    };
+  }
+  return {
+    title: 'Synthetic evidence fixture',
+    note: `${item.source.note} Boundary: ${item.limitation}`,
+    accessedAt: item.observedAt,
+  };
+});
+
+const canonicalPath = `/field-notes/${note.data.slug}/`;
+const structuredData = {
+  '@context': 'https://schema.org',
+  '@type': 'Article',
+  headline: note.data.title,
+  description: note.data.description,
+  datePublished: note.data.dates.published,
+  dateModified: note.data.dates.updated,
+  mainEntityOfPage: `https://agentsutra.dev${canonicalPath}`,
+  publisher: { '@type': 'Organization', name: 'AgentSutra', url: 'https://agentsutra.dev/' },
+  author: { '@type': 'Organization', name: 'AgentSutra', url: 'https://agentsutra.dev/' },
+};
+---
+
+<BaseLayout
+  title={`${note.data.title} — AgentSutra`}
+  description={note.data.description}
+  canonicalPath={canonicalPath}
+  noindex={process.env.PUBLIC_LAUNCH !== '1' || note.data.fixture}
+  structuredData={structuredData}
+>
+  <article class="field-note">
+    <FieldNoteHeader
+      id={note.data.id}
+      title={note.data.title}
+      answer={note.data.answer}
+      arc={note.data.arc}
+      difficulty={note.data.difficulty}
+      publishedAt={note.data.dates.published}
+      reviewedAt={note.data.dates.reviewed}
+    />
+
+    <div class="shell page-section">
+      <div class="prose field-note__opening">
+        <h2>The problem</h2>
+        <p>{note.data.beats.problem}</p>
+        <h2>The naïve model</h2>
+        <p>{note.data.beats.naiveModel}</p>
+        <h2>What is actually happening</h2>
+        <p>{note.data.beats.mechanism}</p>
+      </div>
+
+      <AgentThread
+        title={diagram.title}
+        layout={diagram.layout}
+        nodes={diagram.nodes}
+        edges={diagram.edges}
+        textSteps={diagram.textSteps}
+      />
+
+      <div class="prose">
+        <h2>The explanation</h2>
+        <Content />
+        <h2>Evidence in one sentence</h2>
+        <p>{note.data.beats.evidenceSummary}</p>
+      </div>
+
+      <EvidencePanel pack={evidence} />
+      <BoundaryPanel boundary={evidence.boundary.statement} />
+      <UseToday action={evidence.transfer.action} precondition={evidence.transfer.precondition} />
+      <MemoryLine line={note.data.beats.memoryLine} />
+
+      <section class="content-panel depth-door" aria-labelledby="depth-door-title">
+        <p class="content-panel__label">Optional technical depth</p>
+        <div>
+          <h2 id="depth-door-title">Go one level deeper</h2><p>{note.data.beats.depthDoor}</p>
+        </div>
+      </section>
+
+      <SourcesList sources={sources} />
+
+      <section class="content-panel editorial-record" aria-labelledby="editorial-title">
+        <p class="content-panel__label">Editorial record</p>
+        <div>
+          <h2 id="editorial-title">Disclosure and corrections</h2>
+          <p>{note.data.aiDisclosure}</p>
+          <p><strong>Correction status:</strong> {evidence.correctionStatus}.</p>
+          {
+            evidence.boundary.doesNotProve.length > 0 && (
+              <details>
+                <summary>Detailed evidence limits</summary>
+                <ul>
+                  {evidence.boundary.doesNotProve.map((item) => (
+                    <li>{item}</li>
+                  ))}
+                </ul>
+              </details>
+            )
+          }
+        </div>
+      </section>
+
+      {
+        related.length > 0 && (
+          <nav class="content-panel" aria-labelledby="related-title">
+            <h2 id="related-title">Related Field Notes</h2>
+            <ul>
+              {related.map((entry) => (
+                <li>
+                  <a href={`/field-notes/${entry.slug}/`}>{entry.title}</a>
+                </li>
+              ))}
+            </ul>
+          </nav>
+        )
+      }
+    </div>
+  </article>
+</BaseLayout>

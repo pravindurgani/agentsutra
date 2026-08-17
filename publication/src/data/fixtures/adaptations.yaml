@@ -1,0 +1,118 @@
+- schemaVersion: '1.0'
+  id: AD-FN-000-IG
+  fieldNoteId: FN-000
+  evidencePackId: EP-FN-000
+  platform: instagram
+  format: carousel
+  lifecycle: draft
+  centralClaim: 'Synthetic fixture claim: a deliberately fictional record can test the complete AgentSutra publishing contract without asserting anything about a real system.'
+  canonicalPath: /field-notes/fn-000-stress-test/
+  frames:
+    - index: 1
+      role: cover
+      heading: 'Can a fictional lesson test a real publishing contract?'
+      body: 'This deliberately synthetic carousel stresses the complete record shape without making a real public claim.'
+      altText: 'Cover card identifying FN-000 as a synthetic AgentSutra publishing-contract stress test.'
+    - index: 2
+      role: mechanism
+      heading: 'One claim, five linked record types'
+      body: 'The Field Note, evidence pack, Thread, platform adaptation, and interview rehearsal must agree exactly.'
+      altText: 'Text card explaining that five linked synthetic record types must share one exact central claim.'
+      diagramId: TD-FN-000
+    - index: 3
+      role: boundary
+      heading: 'What this does not prove'
+      body: 'A passing fixture validates declared contracts only; it does not make future lessons accurate or publishable.'
+      altText: 'Boundary card stating that fixture validation is not evidence for any real future lesson.'
+    - index: 4
+      role: transfer
+      heading: 'Use the gate on every real note'
+      body: 'Add bounded evidence, run the graph validator, and manually review the rendered result before release.'
+      altText: 'Action card describing validation and human review before a real Field Note is released.'
+  caption: 'Synthetic fixture only. FN-000 is engineering test data and is excluded from normal production builds.'
+  export:
+    width: 1080
+    height: 1350
+    format: png
+- schemaVersion: '1.0'
+  id: AD-FN-000-TT
+  fieldNoteId: FN-000
+  evidencePackId: EP-FN-000
+  platform: tiktok
+  format: photo-post
+  lifecycle: draft
+  centralClaim: 'Synthetic fixture claim: a deliberately fictional record can test the complete AgentSutra publishing contract without asserting anything about a real system.'
+  canonicalPath: /field-notes/fn-000-stress-test/
+  frames:
+    - index: 1
+      role: cover
+      heading: 'This is a synthetic stress test'
+      body: 'A tall static card tests long copy and explicit boundaries without presenting a real technical lesson.'
+      altText: 'Tall TikTok photo card clearly labelling FN-000 as synthetic engineering test data.'
+    - index: 2
+      role: boundary
+      heading: 'Passing is not publishing'
+      body: 'A valid fixture proves the contracts agree, not that a real claim has earned public confidence.'
+      altText: 'Boundary card distinguishing a passing synthetic validation from approval to publish a real claim.'
+  caption: 'Synthetic fixture only; no real claim or advice is presented in this draft photo-post adaptation.'
+  export:
+    width: 1080
+    height: 1920
+    format: png
+- schemaVersion: '1.0'
+  id: AD-FN-000-LI
+  fieldNoteId: FN-000
+  evidencePackId: EP-FN-000
+  platform: linkedin
+  format: document
+  lifecycle: draft
+  centralClaim: 'Synthetic fixture claim: a deliberately fictional record can test the complete AgentSutra publishing contract without asserting anything about a real system.'
+  canonicalPath: /field-notes/fn-000-stress-test/
+  frames:
+    - index: 1
+      role: cover
+      heading: 'Engineering the publication contract before the first claim'
+      body: 'FN-000 is a fictional, non-publishable record used to validate AgentSutra’s typed editorial system.'
+      altText: 'LinkedIn document cover identifying FN-000 as a fictional validation record rather than a public lesson.'
+    - index: 2
+      role: boundary
+      heading: 'What the fixture cannot establish'
+      body: 'Contract validation cannot establish whether a real AI-system claim is accurate, useful, accessible in context, secure, or ready to publish.'
+      altText: 'LinkedIn document boundary page stating that a passing synthetic fixture cannot validate a real AI-system claim.'
+    - index: 3
+      role: depth-door
+      heading: 'The useful artifact is the rejection path'
+      body: 'Tests prove that missing boundaries, excessive support claims, unsafe private locators, and ungated risk states fail closed.'
+      altText: 'Technical detail card listing the invalid content states that the build contract rejects.'
+  caption: 'Draft engineering fixture. This document adaptation is never part of the production publication corpus.'
+  attribution:
+    byline: 'AgentSutra editorial lab'
+    relationship: 'This byline identifies the publisher of a synthetic engineering fixture, not the author of a real-world technical claim.'
+    reflection: 'What I would do differently now: test truth-equivalence and platform-native output before treating visual polish as evidence of release readiness.'
+  export:
+    width: 1080
+    height: 1350
+    format: pdf
+- schemaVersion: '1.0'
+  id: AD-FN-000-RD
+  fieldNoteId: FN-000
+  evidencePackId: EP-FN-000
+  platform: reddit
+  format: text-post
+  lifecycle: draft
+  centralClaim: 'Synthetic fixture claim: a deliberately fictional record can test the complete AgentSutra publishing contract without asserting anything about a real system.'
+  canonicalPath: /field-notes/fn-000-stress-test/
+  frames:
+    - index: 1
+      role: problem
+      heading: 'How would you test an educational content contract without inventing facts?'
+      body: 'Use an explicitly synthetic fixture that stresses the schema and reference graph while making no claim about a real system.'
+      altText: 'Reddit text-post preview asking how a publication contract can be tested without inventing factual evidence.'
+    - index: 2
+      role: boundary
+      heading: 'The fixture is not an example lesson'
+      body: 'Its passing result belongs to engineering validation and cannot be cited as support for a future public claim.'
+      altText: 'Boundary text stating that synthetic fixture results cannot support a future real-world claim.'
+  caption: 'Synthetic discussion fixture only; adapt to each community’s rules before any real Reddit publication.'
+  export:
+    format: markdown

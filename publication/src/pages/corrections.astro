@@ -1,0 +1,70 @@
+---
+import BaseLayout from '../layouts/BaseLayout.astro';
+import { loadPublicationGraph } from '../lib/content';
+
+const graph = await loadPublicationGraph();
+const corrections = graph.evidencePacks
+  .filter((pack) => pack.correctionStatus !== 'none')
+  .map((pack) => ({
+    pack,
+    note: graph.fieldNotes.find((note) => note.id === pack.fieldNoteId),
+  }))
+  .filter((entry) => entry.note);
+---
+
+<BaseLayout
+  title="Corrections — AgentSutra"
+  description="The public correction record for AgentSutra Field Notes."
+  canonicalPath="/corrections/"
+>
+  <header class="page-intro">
+    <div class="page-intro__grid shell">
+      <p class="page-intro__context">Public record</p>
+      <div>
+        <h1>Corrections</h1><p class="page-intro__lead">
+          Clear explanations can still be wrong. Material changes stay visible here instead of
+          disappearing into silent edits.
+        </p>
+      </div>
+    </div>
+  </header>
+  <section class="page-section">
+    <div class="shell prose">
+      <h2>Correction policy</h2>
+      <p>
+        Minor spelling or formatting fixes may be made silently. A change to a central claim,
+        material supporting claim, numeric result, evidence status or practical recommendation
+        receives a dated correction note. Withdrawn claims remain identified as withdrawn.
+      </p>
+      <p>
+        To report a factual or accessibility problem before the public contact channel opens, use
+        the AgentSutra publication repository’s issue tracker. Never include confidential evidence
+        or personal data in a report.
+      </p>
+    </div>
+    <div class="shell">
+      {
+        corrections.length > 0 ? (
+          <div class="correction-ledger">
+            {corrections.map(({ note, pack }) => (
+              <article class="correction-record">
+                <p class="correction-record__state">
+                  {pack.correctionStatus} / {pack.fieldNoteId}
+                </p>
+                <h2>
+                  <a href={`/field-notes/${note!.slug}/`}>{note!.title}</a>
+                </h2>
+                <p>{pack.boundary.statement}</p>
+              </article>
+            ))}
+          </div>
+        ) : (
+          <div class="pilot-empty">
+            <strong>Empty public record</strong>
+            <p>No published Field Note has an open correction.</p>
+          </div>
+        )
+      }
+    </div>
+  </section>
+</BaseLayout>

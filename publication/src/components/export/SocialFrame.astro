@@ -1,0 +1,109 @@
+---
+import type { Adaptation, EvidencePack, ThreadDiagram } from '../../schemas';
+import { getPublicEvidencePresentation } from '../../lib/public-evidence';
+import SocialThread from './SocialThread.astro';
+
+interface Props {
+  adaptation: Adaptation;
+  evidencePack: EvidencePack;
+  frame: Adaptation['frames'][number];
+  diagram?: ThreadDiagram;
+  documentPage?: boolean;
+}
+
+const { adaptation, evidencePack, frame, diagram, documentPage = false } = Astro.props;
+const exportId = `${adaptation.id}-${String(frame.index).padStart(2, '0')}`;
+const total = adaptation.frames.length;
+const evidence = getPublicEvidencePresentation(evidencePack);
+const roleLabel = frame.role.replaceAll('-', ' ');
+const diagramDescription = diagram?.textSteps.map((step) => step.summary).join(' ');
+const completeAltText = diagramDescription
+  ? `${frame.altText} Diagram text equivalent: ${diagramDescription}`
+  : frame.altText;
+---
+
+<article
+  class:list={[
+    'social-card',
+    `social-card--${adaptation.platform}`,
+    `social-card--${frame.role}`,
+    { 'social-card--document-page': documentPage },
+  ]}
+  style={`--export-width:${adaptation.export.format === 'markdown' ? (adaptation.export.companionImage?.width ?? 1200) : adaptation.export.width}px;--export-height:${adaptation.export.format === 'markdown' ? (adaptation.export.companionImage?.height ?? 1500) : adaptation.export.height}px`}
+  data-social-card
+  data-export-id={exportId}
+  data-platform={adaptation.platform}
+  data-frame-role={frame.role}
+  data-frame-index={frame.index}
+  data-frame-total={total}
+  data-width={adaptation.export.format === 'markdown'
+    ? adaptation.export.companionImage?.width
+    : adaptation.export.width}
+  data-height={adaptation.export.format === 'markdown'
+    ? adaptation.export.companionImage?.height
+    : adaptation.export.height}
+  data-canonical-path={adaptation.canonicalPath}
+  data-caption={adaptation.caption}
+  data-alt-text={completeAltText}
+  data-evidence-status={evidence.statusLabel}
+  data-correction-status={evidence.correctionLabel}
+  aria-label={completeAltText}
+>
+  <div class="social-card__thread" aria-hidden="true"><span></span></div>
+  <header class="social-card__meta">
+    <span class="social-card__folio">{adaptation.fieldNoteId}</span>
+    <span class="evidence-stamp">{evidence.statusLabel}</span>
+    <span>{roleLabel}</span>
+  </header>
+
+  <div class="social-card__body">
+    {
+      frame.role === 'naive-model' && (
+        <p class="social-card__annotation">The tempting explanation</p>
+      )
+    }
+    {frame.role === 'memory-line' && <p class="social-card__annotation">Follow the Sutra</p>}
+    <h1>{frame.heading}</h1>
+    {
+      frame.role === 'cover' && (
+        <div class="social-card__claim">
+          <span>Central claim</span>
+          <p>{adaptation.centralClaim}</p>
+        </div>
+      )
+    }
+    {
+      frame.role === 'cover' && adaptation.attribution && (
+        <p class="social-card__byline">By {adaptation.attribution.byline}</p>
+      )
+    }
+    {diagram && <SocialThread diagram={diagram} markerPrefix={`export-${exportId}`} />}
+    <p class="social-card__copy">{frame.body}</p>
+    {
+      frame.role === 'boundary' && (
+        <div class="social-card__boundary">
+          <span>Boundary</span>
+          <p>{evidence.boundary}</p>
+        </div>
+      )
+    }
+    {
+      frame.role === 'depth-door' && (
+        <div class="social-card__depth">
+          <p>Technical record · sources · correction path</p>
+          {adaptation.attribution && <p>{adaptation.attribution.reflection}</p>}
+        </div>
+      )
+    }
+  </div>
+
+  <footer class="social-card__footer">
+    <div>
+      <p class="wordmark">AgentSutra</p>
+      <p class="social-card__correction">{evidence.correctionLabel}</p>
+    </div>
+    <p class="social-card__index">
+      {String(frame.index).padStart(2, '0')} / {String(total).padStart(2, '0')}
+    </p>
+  </footer>
+</article>

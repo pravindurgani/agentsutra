@@ -1,0 +1,53 @@
+---
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import { getVisibleFieldNotes } from '../../lib/content';
+
+const notes = await getVisibleFieldNotes();
+---
+
+<BaseLayout
+  title="Field Notes — AgentSutra"
+  description="Accessible, evidence-bounded lessons drawn from real AI systems work and designed for practical use."
+  canonicalPath="/field-notes/"
+>
+  <header class="page-intro">
+    <div class="page-intro__grid shell">
+      <p class="page-intro__context">Canonical collection</p>
+      <div>
+        <h1>Field Notes</h1>
+        <p class="page-intro__lead">
+          One problem, one mechanism, one evidence boundary and one action worth remembering.
+        </p>
+      </div>
+    </div>
+  </header>
+  <section class="page-section">
+    <div class="section-grid shell">
+      <h2>Publication register</h2>
+      {
+        notes.length > 0 ? (
+          <div class="note-ledger">
+            {notes.map((note) => (
+              <article class="note-record">
+                <p class="note-record__folio">{note.id}</p>
+                <h2>
+                  <a href={`/field-notes/${note.slug}/`}>{note.title}</a>
+                </h2>
+                <p class="note-record__answer">{note.answer}</p>
+                <p class="note-record__meta">
+                  {note.arc} / {note.difficulty}
+                </p>
+              </article>
+            ))}
+          </div>
+        ) : (
+          <div class="pilot-empty">
+            <strong>0 public Field Notes</strong>
+            <p>The first three Field Notes are being tested privately before launch.</p>
+            <a href="/#experiment-fn-000">Inspect the explicitly synthetic FN-000 specimen</a>
+          </div>
+        )
+      }
+    </div>
+  </section>
+</BaseLayout>

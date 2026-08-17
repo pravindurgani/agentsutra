@@ -6,6 +6,19 @@
 
 **A private, autonomous AI agent for your Mac that actually gets work done.**
 
+## Repository surfaces
+
+This repository now keeps two AgentSutra products in deliberately separate workspaces:
+
+- the Python runtime remains at the repository root;
+- [`publication/`](publication/) contains the static, evidence-led AgentSutra.dev publication.
+
+They share the AgentSutra identity and repository history, but not dependencies, build commands, release gates, private evidence, or deployment state. Work on the publication from `publication/`; its public-release profile remains blocked until a real evidence-reviewed Field Note passes the documented launch gates.
+
+### Licence map
+
+The root [MIT licence](LICENSE) applies to AgentSutra Runtime files outside `publication/`. The publication workspace has distinct code, editorial, identity, and evidence-rights boundaries documented in [`publication/RIGHTS.md`](publication/RIGHTS.md); its third-party software and assets are listed in [`publication/THIRD_PARTY_NOTICES.md`](publication/THIRD_PARTY_NOTICES.md).
+
 Send a message to Telegram. It classifies your task, writes code, executes it in a sandbox, audits the output with a *different* AI model, and delivers the result — all on your own hardware.
 
 ---

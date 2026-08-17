@@ -1,0 +1,128 @@
+---
+import {
+  threadEdgeSemantics,
+  threadNodeSemantics,
+  type ThreadEdge,
+  type ThreadLayout,
+  type ThreadNode,
+  type ThreadTextStep,
+} from '../schemas';
+import ThreadDiagramSvg from './ThreadDiagramSvg.astro';
+import { buildThreadLayout } from './thread-engine';
+
+interface LegacyNode {
+  id: string;
+  label: string;
+  kind: ThreadNode['kind'];
+  stage?: ThreadNode['stage'];
+  description?: string;
+  position?: ThreadNode['position'];
+}
+
+interface LegacyEdge {
+  id?: string;
+  from: string;
+  to: string;
+  label?: string | undefined;
+  kind?: ThreadEdge['kind'];
+}
+
+interface Props {
+  title?: string;
+  layout?: ThreadLayout;
+  nodes: LegacyNode[];
+  edges?: LegacyEdge[];
+  textSteps?: ThreadTextStep[] | string[];
+}
+
+const {
+  title = 'AgentSutra Thread',
+  layout = 'linear',
+  nodes: inputNodes,
+  edges: inputEdges,
+  textSteps: inputSteps,
+} = Astro.props;
+
+const nodes: ThreadNode[] = inputNodes.map((node) => ({
+  id: node.id,
+  label: node.label,
+  kind: node.kind,
+  stage: node.stage ?? 'reasoning',
+  ...(node.position ? { position: node.position } : {}),
+}));
+const rawEdges: LegacyEdge[] =
+  inputEdges ?? nodes.slice(1).map((node, index) => ({ from: nodes[index]!.id, to: node.id }));
+const edges: ThreadEdge[] = rawEdges.map((edge, index) => ({
+  id: edge.id ?? `E${String(index + 1).padStart(2, '0')}`,
+  from: edge.from,
+  to: edge.to,
+  kind: edge.kind ?? 'deterministic',
+  ...(edge.label ? { label: edge.label } : {}),
+}));
+const textSteps: ThreadTextStep[] =
+  inputSteps && inputSteps.length > 0 && typeof inputSteps[0] !== 'string'
+    ? (inputSteps as ThreadTextStep[])
+    : (
+        (inputSteps as string[] | undefined) ??
+        inputNodes.map((node) => node.description ?? node.label)
+      ).map((summary, index) => ({
+        id: `T${String(index + 1).padStart(2, '0')}`,
+        summary,
+        nodeIds: [nodes[Math.min(index, nodes.length - 1)]!.id],
+        edgeIds: edges[index] ? [edges[index].id] : [],
+      }));
+
+const wide = buildThreadLayout({ layout, nodes, edges });
+const compact = buildThreadLayout({ layout, nodes, edges, compact: true });
+const markerPrefix = `thread-${title}-${nodes.map((node) => node.id).join('-')}`
+  .toLowerCase()
+  .replace(/[^a-z0-9-]+/gu, '-')
+  .replace(/^-|-$/gu, '');
+const textId = `${markerPrefix}-text`;
+const nodeById = new Map(nodes.map((node) => [node.id, node]));
+const edgeById = new Map(edges.map((edge) => [edge.id, edge]));
+---
+
+<figure class="thread" data-thread-layout={layout}>
+  <figcaption>
+    <p class="kicker">AgentSutra Thread / {layout}</p>
+    <h2>{title}</h2>
+  </figcaption>
+  <div class="thread__canvas">
+    <ThreadDiagramSvg result={wide} variant="wide" markerPrefix={markerPrefix} />
+    <ThreadDiagramSvg result={compact} variant="compact" markerPrefix={markerPrefix} />
+  </div>
+  <div id={textId} data-diagram-text-equivalent>
+    <p class="visually-hidden">Visible text equivalent for the complete diagram:</p>
+    <ol class="thread__text">
+      {
+        textSteps.map((step) => {
+          const nodeReferences = step.nodeIds
+            .map((nodeId) => nodeById.get(nodeId))
+            .filter((node): node is ThreadNode => Boolean(node));
+          const edgeReferences = step.edgeIds
+            .map((edgeId) => edgeById.get(edgeId))
+            .filter((edge): edge is ThreadEdge => Boolean(edge));
+          return (
+            <li data-node-refs={step.nodeIds.join(' ')} data-edge-refs={step.edgeIds.join(' ')}>
+              <strong>{step.id}</strong>
+              <span> — {step.summary}</span>
+              <small class="thread__refs">
+                References:{' '}
+                {[
+                  ...nodeReferences.map(
+                    (node) => `${threadNodeSemantics[node.kind]} ${node.label} (${node.id})`,
+                  ),
+                  ...edgeReferences.map(
+                    (edge) =>
+                      `${threadEdgeSemantics[edge.kind]} ${edge.label ?? `${edge.from} to ${edge.to}`} (${edge.id})`,
+                  ),
+                ].join('; ')}
+              </small>
+            </li>
+          );
+        })
+      }
+    </ol>
+  </div>
+</figure>

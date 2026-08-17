@@ -1,0 +1,37 @@
+---
+interface Props {
+  currentPath: string;
+}
+
+const { currentPath } = Astro.props;
+const nav = [
+  { href: '/#thread-map', label: 'Thread Map' },
+  { href: '/start-here/', label: 'Start here' },
+  { href: '/field-notes/', label: 'Field Notes' },
+  { href: '/method/', label: 'Method' },
+];
+const isCurrent = (href: string) =>
+  href === '/field-notes/' ? currentPath.startsWith('/field-notes/') : currentPath === href;
+---
+
+<header class="site-header">
+  <div class="site-header__inner shell">
+    <a class="wordmark" href="/" aria-label="AgentSutra home">
+      <span aria-hidden="true" class="wordmark__mark"></span>
+      <span>AgentSutra</span>
+    </a>
+    <nav class="site-nav" aria-label="Primary">
+      <ul>
+        {
+          nav.map((item) => (
+            <li>
+              <a href={item.href} aria-current={isCurrent(item.href) ? 'page' : undefined}>
+                {item.label}
+              </a>
+            </li>
+          ))
+        }
+      </ul>
+    </nav>
+  </div>
+</header>

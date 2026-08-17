@@ -1,0 +1,90 @@
+---
+import SiteFooter from '../components/SiteFooter.astro';
+import SiteHeader from '../components/SiteHeader.astro';
+import '../styles/global.css';
+
+interface Props {
+  title?: string;
+  description?: string;
+  canonicalPath?: string;
+  noindex?: boolean;
+  image?: string;
+  imageAlt?: string;
+  structuredData?: Record<string, unknown> | Record<string, unknown>[];
+}
+
+const publicLaunch = process.env.PUBLIC_LAUNCH === '1';
+const {
+  title = 'AgentSutra — AI systems, explained through evidence',
+  description = 'Accessible, evidence-led Field Notes for understanding and using AI systems with better judgement.',
+  canonicalPath = Astro.url.pathname,
+  noindex = !publicLaunch,
+  image,
+  imageAlt,
+  structuredData,
+} = Astro.props;
+
+const origin = Astro.site ?? new URL('https://agentsutra.dev');
+const canonical = new URL(canonicalPath, origin);
+const socialImage = image ? new URL(image, origin).toString() : undefined;
+---
+
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="generator" content={Astro.generator} />
+    <meta name="description" content={description} />
+    <meta name="theme-color" content="#07090e" />
+    <meta name="color-scheme" content="dark" />
+    <meta
+      name="robots"
+      content={noindex ? 'noindex,nofollow' : 'index,follow,max-image-preview:large'}
+    />
+    <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
+    <link rel="icon" href="/favicon.ico" sizes="any" />
+    <link rel="canonical" href={canonical} />
+    <link
+      rel="alternate"
+      type="application/rss+xml"
+      title="AgentSutra Field Notes"
+      href="/rss.xml"
+    />
+    <meta property="og:type" content="website" />
+    <meta property="og:site_name" content="AgentSutra" />
+    <meta property="og:title" content={title} />
+    <meta property="og:description" content={description} />
+    <meta property="og:url" content={canonical} />
+    {socialImage && <meta property="og:image" content={socialImage} />}
+    {socialImage && imageAlt && <meta property="og:image:alt" content={imageAlt} />}
+    <meta name="twitter:card" content={socialImage ? 'summary_large_image' : 'summary'} />
+    <meta name="twitter:title" content={title} />
+    <meta name="twitter:description" content={description} />
+    {socialImage && <meta name="twitter:image" content={socialImage} />}
+    {socialImage && imageAlt && <meta name="twitter:image:alt" content={imageAlt} />}
+    <title>{title}</title>
+    {
+      structuredData && (
+        <script is:inline type="application/ld+json" set:html={JSON.stringify(structuredData)} />
+      )
+    }
+    <slot name="head" />
+  </head>
+  <body>
+    <!--
+    THESIS: Thread is the reading interface; this field laboratory refuses the generic AI landing-page hero and card stack.
+    OWN-WORLD: Ink-black field, paper-white type, cyan evidence, violet judgement, square rules, folios, ledgers, and code-native Thread nodes.
+    STORY: A reader meets the prelaunch boundary, follows one claim through the Thread Map, inspects a synthetic experiment, and chooses a useful next depth.
+    FIRST VIEWPORT: A narrow field-status rail meets an oversized editorial claim; a persistent Thread runs through the composition and the primary action lands beside the pilot record.
+    FORM: Threaded Field Lab, first-ranked selected direction, seed 0ea21cef.
+    FINISH: production-ready in all states
+    -->
+    <a class="skip-link" href="#main">Skip to content</a>
+    <SiteHeader currentPath={Astro.url.pathname} />
+    <main id="main" class="site-main" tabindex="-1">
+      <slot />
+    </main>
+    <SiteFooter />
+  </body>
+</html>

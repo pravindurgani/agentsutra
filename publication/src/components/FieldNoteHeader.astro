@@ -1,0 +1,53 @@
+---
+interface Props {
+  id: string;
+  title: string;
+  answer: string;
+  arc: string;
+  difficulty: string;
+  publishedAt?: Date | string | undefined;
+  reviewedAt?: Date | string | undefined;
+}
+
+const { id, title, answer, arc, difficulty, publishedAt, reviewedAt } = Astro.props;
+const formatDate = (value?: Date | string) =>
+  value
+    ? new Intl.DateTimeFormat('en-GB', { day: 'numeric', month: 'short', year: 'numeric' }).format(
+        typeof value === 'string' ? new Date(value) : value,
+      )
+    : undefined;
+---
+
+<header class="field-note-header">
+  <div class="field-note-header__grid shell">
+    <p class="field-note-header__folio">Field Note / {id}</p>
+    <div class="field-note-header__copy">
+      <h1>{title}</h1>
+      <p class="field-note-header__answer">{answer}</p>
+    </div>
+    <dl class="field-note-header__meta" aria-label="Field Note metadata">
+      <div><dt>Learning arc</dt><dd>{arc}</dd></div>
+      <div><dt>Reading level</dt><dd>{difficulty}</dd></div>
+      {
+        publishedAt && (
+          <div>
+            <>
+              <dt>Published</dt>
+              <dd>{formatDate(publishedAt)}</dd>
+            </>
+          </div>
+        )
+      }
+      {
+        reviewedAt && (
+          <div>
+            <>
+              <dt>Reviewed</dt>
+              <dd>{formatDate(reviewedAt)}</dd>
+            </>
+          </div>
+        )
+      }
+    </dl>
+  </div>
+</header>

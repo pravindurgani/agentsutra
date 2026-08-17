@@ -1,0 +1,96 @@
+- schemaVersion: '1.0'
+  id: TD-FN-000
+  fieldNoteId: FN-000
+  title: 'Synthetic publishing contract Thread'
+  description: 'A deliberately dense Thread showing intent, reasoning, decisions, uncertainty, failure, iteration, and a verified synthetic outcome.'
+  layout: feedback
+  nodes:
+    - id: N01
+      kind: input
+      stage: intent
+      label: Synthetic draft
+    - id: N02
+      kind: state
+      stage: intent
+      label: Typed record set
+    - id: N03
+      kind: process
+      stage: reasoning
+      label: Parse contracts
+    - id: N04
+      kind: decision
+      stage: reasoning
+      label: References agree?
+    - id: N05
+      kind: uncertainty
+      stage: reasoning
+      label: Unresolved mismatch
+    - id: N06
+      kind: failure
+      stage: outcome
+      label: Build rejected
+    - id: N07
+      kind: artifact
+      stage: outcome
+      label: Validated fixture
+    - id: N08
+      kind: verified
+      stage: outcome
+      label: Contract verified
+  edges:
+    - id: E01
+      from: N01
+      to: N02
+      kind: deterministic
+    - id: E02
+      from: N02
+      to: N03
+      kind: deterministic
+    - id: E03
+      from: N03
+      to: N04
+      kind: deterministic
+    - id: E04
+      from: N04
+      to: N05
+      kind: unresolved
+      label: Not yet
+    - id: E05
+      from: N05
+      to: N06
+      kind: deterministic
+    - id: E06
+      from: N06
+      to: N02
+      kind: iteration
+      label: Correct the record
+    - id: E07
+      from: N04
+      to: N07
+      kind: deterministic
+      label: Yes
+    - id: E08
+      from: N07
+      to: N08
+      kind: deterministic
+  textSteps:
+    - id: T01
+      summary: 'Start with a clearly labelled synthetic draft and move into its typed record set.'
+      nodeIds: [N01, N02]
+      edgeIds: [E01]
+    - id: T02
+      summary: 'Parse every strict schema and compare all cross-record identifiers and central claims.'
+      nodeIds: [N02, N03, N04]
+      edgeIds: [E02, E03]
+    - id: T03
+      summary: 'When a reference is unresolved, reject the build and return to the source record.'
+      nodeIds: [N04, N05, N06, N02]
+      edgeIds: [E04, E05, E06]
+    - id: T04
+      summary: 'When all contracts agree, retain the validated fixture only in the explicit fixture build.'
+      nodeIds: [N04, N07]
+      edgeIds: [E07]
+    - id: T05
+      summary: 'Treat the verified outcome as contract evidence, not evidence for a real-world lesson.'
+      nodeIds: [N07, N08]
+      edgeIds: [E08]

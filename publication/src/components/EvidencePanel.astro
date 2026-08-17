@@ -1,0 +1,61 @@
+---
+import type { EvidencePack } from '../schemas';
+
+interface Props {
+  pack: EvidencePack;
+}
+
+const { pack } = Astro.props;
+const sourceLabel = (item: EvidencePack['evidence'][number]) => {
+  if (item.source.access === 'public') return item.source.label;
+  if (item.source.access === 'private') return item.source.publicDescription;
+  return item.source.note;
+};
+const readerStamp =
+  pack.correctionStatus === 'withdrawn'
+    ? 'WITHDRAWN'
+    : pack.correctionStatus === 'corrected'
+      ? 'CORRECTED'
+      : pack.measurement
+        ? 'MEASURED'
+        : pack.evidence.some((item) => item.verification === 'reproduced')
+          ? 'REPRODUCED'
+          : pack.evidence.some((item) => item.kind === 'observation')
+            ? 'OBSERVED'
+            : 'BOUNDED';
+---
+
+<section class="evidence-panel" aria-labelledby="evidence-title">
+  <header class="panel-heading">
+    <h2 id="evidence-title">What supports this</h2>
+    <span class={`evidence-stamp evidence-stamp--${readerStamp.toLowerCase()}`} data-evidence-stamp>
+      {readerStamp}
+    </span>
+  </header>
+  <p class="central-claim"><strong>Central claim</strong><span>{pack.centralClaim}</span></p>
+  <ol class="evidence-list">
+    {
+      pack.evidence.map((item) => (
+        <li>
+          <strong>{sourceLabel(item)}</strong>
+          <small>
+            {item.kind} · {item.verification} · observed {item.observedAt}
+          </small>
+          <small>Method: {item.method}</small>
+          <small>Limitation: {item.limitation}</small>
+        </li>
+      ))
+    }
+  </ol>
+  {
+    pack.measurement && (
+      <p class="measurement-record">
+        <strong>Measurement record</strong>
+        <span>
+          Version {pack.measurement.version}; denominator {pack.measurement.denominator}; measured{' '}
+          {pack.measurement.measuredAt}.
+        </span>
+      </p>
+    )
+  }
+</section>

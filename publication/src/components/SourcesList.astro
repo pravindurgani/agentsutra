@@ -1,0 +1,52 @@
+---
+export interface SourceItem {
+  title: string;
+  url?: string;
+  publisher?: string;
+  note?: string;
+  accessedAt?: Date | string;
+}
+
+interface Props {
+  sources?: SourceItem[];
+}
+
+const { sources = [] } = Astro.props;
+const formatDate = (value?: Date | string) =>
+  value
+    ? new Intl.DateTimeFormat('en-GB', { day: 'numeric', month: 'short', year: 'numeric' }).format(
+        typeof value === 'string' ? new Date(value) : value,
+      )
+    : undefined;
+---
+
+<section class="sources-panel" aria-labelledby="sources-title">
+  <header class="panel-heading">
+    <h2 id="sources-title">Source register</h2>
+    <span>Provenance</span>
+  </header>
+  {
+    sources.length > 0 ? (
+      <ol class="sources-list">
+        {sources.map((source) => (
+          <li>
+            {source.url ? <a href={source.url}>{source.title}</a> : <strong>{source.title}</strong>}
+            {(source.publisher || source.accessedAt) && (
+              <small>
+                {[
+                  source.publisher,
+                  source.accessedAt && `accessed ${formatDate(source.accessedAt)}`,
+                ]
+                  .filter(Boolean)
+                  .join(' · ')}
+              </small>
+            )}
+            {source.note && <small>{source.note}</small>}
+          </li>
+        ))}
+      </ol>
+    ) : (
+      <p class="muted">No external sources are required for this explanatory note.</p>
+    )
+  }
+</section>

@@ -1,0 +1,51 @@
+---
+import BaseLayout from '../layouts/BaseLayout.astro';
+---
+
+<BaseLayout
+  title="Accessibility — AgentSutra"
+  description="AgentSutra accessibility commitments, current design standards and known limits."
+  canonicalPath="/accessibility/"
+>
+  <header class="page-intro">
+    <div class="page-intro__grid shell">
+      <p class="page-intro__context">Publication policy</p>
+      <div>
+        <h1>Accessibility</h1><p class="page-intro__lead">
+          The lesson is not complete if the format prevents someone from reaching it.
+        </p>
+      </div>
+    </div>
+  </header>
+  <section class="page-section">
+    <div class="shell prose">
+      <h2>Our target</h2>
+      <p>
+        AgentSutra targets WCAG 2.2 Level AA for the canonical website and applies the same
+        principles to social adaptations wherever each platform permits.
+      </p>
+      <h2>Built into the system</h2>
+      <ul>
+        <li>Semantic headings, landmarks, lists and descriptive links.</li>
+        <li>Keyboard operation, visible focus and a skip link.</li>
+        <li>Text reflow at 320 CSS pixels and resilience at 400% zoom.</li>
+        <li>Strong contrast, reduced-motion support and forced-colour support.</li>
+        <li>A visible ordered text equivalent beside every Thread diagram.</li>
+        <li>No essential meaning conveyed by colour, position or shape alone.</li>
+        <li>Useful pages without client-side JavaScript or external fonts.</li>
+      </ul>
+      <h2>Testing does not equal perfection</h2>
+      <p>
+        Automated checks catch only part of the experience. Releases also require keyboard, zoom,
+        screen-reader-informed, print and cross-browser review. Conformance is a maintained target,
+        not a permanent badge.
+      </p>
+      <h2>Report a barrier</h2>
+      <p>
+        Use the correction channel listed on the <a href="/corrections/">corrections page</a>.
+        Include the page, device or assistive technology, and what prevented completion.
+        Accessibility reports receive publication-priority review.
+      </p>
+    </div>
+  </section>
+</BaseLayout>

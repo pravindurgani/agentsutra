@@ -1,0 +1,16 @@
+---
+interface Props {
+  boundary: string;
+}
+
+const { boundary } = Astro.props;
+---
+
+<aside class="boundary-panel" aria-labelledby="boundary-title">
+  <div class="boundary-panel__mark" aria-hidden="true">◇</div>
+  <div>
+    <span class="evidence-stamp evidence-stamp--bounded">BOUNDED</span>
+    <h2 id="boundary-title">What this does not prove</h2>
+    <p>{boundary}</p>
+  </div>
+</aside>

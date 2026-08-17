@@ -1,0 +1,15 @@
+# Pinned third-party capability sources retain their upstream formatting.
+.agents/skills/impeccable/**
+.codex/skills/humanizer-source/**
+
+# The sealed visual lab has its own verifier and preserved render evidence.
+design-explorations/**
+
+# Generated output and dependencies.
+dist/**
+exports/**
+node_modules/**
+playwright-report/**
+test-results/**
+.wrangler/**
+.astro/**

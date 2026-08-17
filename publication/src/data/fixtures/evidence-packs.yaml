@@ -1,0 +1,47 @@
+- schemaVersion: '1.0'
+  id: EP-FN-000
+  fieldNoteId: FN-000
+  riskClass: A
+  lifecycle: draft
+  centralClaim: 'Synthetic fixture claim: a deliberately fictional record can test the complete AgentSutra publishing contract without asserting anything about a real system.'
+  supportingClaims:
+    - id: SC-1
+      claim: 'Synthetic fixtures can exercise schema limits without presenting their placeholder content as verified public evidence.'
+    - id: SC-2
+      claim: 'Exact central-claim matching can detect accidental drift between the canonical note and its platform adaptations.'
+    - id: SC-3
+      claim: 'Visible text steps can provide a semantic equivalent for a diagram when the graphic itself is unavailable.'
+    - id: SC-4
+      claim: 'Opaque identifiers can preserve a reference relationship without exposing the location of private evidence.'
+    - id: SC-5
+      claim: 'A fixture-only build mode can test draft routes while keeping synthetic records out of the production artifact.'
+  evidence:
+    - id: EV-FN-000-01
+      kind: synthetic
+      source:
+        access: synthetic
+        note: 'This source is deliberately fictional and exists only to exercise the validation contract.'
+      supports:
+        - central
+        - SC-1
+        - SC-2
+        - SC-3
+        - SC-4
+        - SC-5
+      verification: unverified
+      observedAt: '2026-08-17'
+      method: 'Parse the complete fixture set, validate every strict schema, then verify all cross-record references and exact central claims.'
+      limitation: 'Passing the synthetic fixture cannot establish that a future lesson is accurate, accessible in context, or ready to publish.'
+  boundary:
+    statement: 'The fixture tests declared data contracts only; it does not validate real-world claims, audience comprehension, or production operations.'
+    doesNotProve:
+      - 'It does not prove that any real AgentSutra lesson is correct, useful, accessible, secure, or ready for publication.'
+      - 'It does not prove that a browser rendering, social export, or external platform will preserve the intended presentation.'
+  transfer:
+    action: 'Use the same validation graph for each real lesson, then add evidence-specific review and rendered accessibility checks before release.'
+    precondition: 'Replace every synthetic record with bounded evidence that satisfies the lifecycle gates for the lesson’s assigned risk class.'
+  privacy:
+    classification: synthetic
+    reviewed: true
+    note: 'The fixture contains no client, machine, account, credential, private path, private locator, or real operational detail.'
+  correctionStatus: none

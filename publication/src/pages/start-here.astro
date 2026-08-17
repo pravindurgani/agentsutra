@@ -1,0 +1,87 @@
+---
+import BaseLayout from '../layouts/BaseLayout.astro';
+import { getVisibleFieldNotes } from '../lib/content';
+
+const notes = await getVisibleFieldNotes();
+const arcs = new Map<string, typeof notes>();
+for (const note of notes) {
+  const bucket = arcs.get(note.arc) ?? [];
+  bucket.push(note);
+  arcs.set(note.arc, bucket);
+}
+---
+
+<BaseLayout
+  title="Start here — AgentSutra"
+  description="Choose an AgentSutra learning path and begin with an independently useful, evidence-bounded AI Field Note."
+  canonicalPath="/start-here/"
+>
+  <header class="page-intro">
+    <div class="page-intro__grid shell">
+      <p class="page-intro__context">Learning map</p>
+      <div>
+        <h1>Start anywhere. Follow one Thread as far as you need.</h1>
+        <p class="page-intro__lead">
+          Every Field Note stands alone. Learning arcs connect related ideas when you want a deeper
+          path—not a rigid course you must finish in order.
+        </p>
+      </div>
+    </div>
+  </header>
+  <section class="page-section">
+    <div class="section-grid shell">
+      <h2>Choose your route</h2>
+      {
+        arcs.size > 0 ? (
+          <div class="route-ledger">
+            {[...arcs.entries()].map(([arc, entries]) => (
+              <section class="route-record">
+                <h3>{arc}</h3>
+                <p>
+                  {entries.length} {entries.length === 1 ? 'Field Note' : 'Field Notes'}
+                </p>
+                <ol class="step-list">
+                  {entries.map((entry) => (
+                    <li>
+                      <a href={`/field-notes/${entry.slug}/`}>{entry.title}</a>
+                    </li>
+                  ))}
+                </ol>
+              </section>
+            ))}
+          </div>
+        ) : (
+          <div class="pilot-empty">
+            <strong>Private pilot</strong>
+            <p>The learning map will open with the first reviewed Field Note.</p>
+          </div>
+        )
+      }
+    </div>
+  </section>
+  <section class="page-section">
+    <div class="section-grid shell">
+      <h2>Three ways to read</h2>
+      <dl class="reader-paths">
+        <div>
+          <dt>Curious user</dt><dd>
+            Read the problem, Thread, boundary and “use this today” action. That is a complete
+            lesson.
+          </dd>
+        </div>
+        <div>
+          <dt>Builder or operator</dt><dd>
+            Continue through the mechanism, evidence pack and correction history to understand how
+            the claim was tested.
+          </dd>
+        </div>
+        <div>
+          <dt>Technical evaluator</dt><dd>
+            Inspect the method, sources, versioned conditions and residual uncertainty. Strong
+            claims receive stronger gates.
+          </dd>
+        </div>
+      </dl>
+    </div>
+  </section>
+</BaseLayout>

@@ -1,0 +1,39 @@
+# root-level generated output
+/dist/
+/exports/
+/.export-dist*/
+/.fixture-dist/
+/.wrangler/
+/playwright-report/
+/test-results/
+# generated types
+.astro/
+
+# dependencies
+node_modules/
+
+# logs
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+
+
+# environment variables
+.env
+.env.production
+.dev.vars
+
+# macOS-specific files
+.DS_Store
+
+# jetbrains setting folder
+.idea/
+
+# local verification artefacts
+coverage/
+*.actual.png
+
+# optional third-party agent capabilities are installed locally, never vendored
+/.agents/skills/impeccable/
+/.codex/
