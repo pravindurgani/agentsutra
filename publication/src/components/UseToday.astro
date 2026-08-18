@@ -1,0 +1,23 @@
+---
+interface Props {
+  action: string;
+  precondition?: string;
+}
+
+const { action, precondition } = Astro.props;
+---
+
+<section class="use-today" aria-labelledby="use-today-title">
+  <div aria-hidden="true" class="use-today__arrow">→</div>
+  <div>
+    <h2 id="use-today-title">Use this today</h2>
+    <p>{action}</p>
+    {
+      precondition && (
+        <p class="muted">
+          <strong>Before you do:</strong> {precondition}
+        </p>
+      )
+    }
+  </div>
+</section>

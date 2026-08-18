@@ -1,0 +1,85 @@
+name: AgentSutra publication CI
+
+on:
+  pull_request:
+    paths:
+      - "README.md"
+      - "publication/**"
+      - ".github/workflows/publication-ci.yml"
+  push:
+    branches: [main]
+    paths:
+      - "README.md"
+      - "publication/**"
+      - ".github/workflows/publication-ci.yml"
+
+permissions:
+  contents: read
+
+concurrency:
+  group: agentsutra-publication-${{ github.ref }}
+  cancel-in-progress: true
+
+defaults:
+  run:
+    working-directory: publication
+
+jobs:
+  verify:
+    name: Verify static publication
+    runs-on: ubuntu-24.04
+    timeout-minutes: 30
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6
+
+      - name: Use exact Node.js runtime
+        uses: actions/setup-node@249970729cb0ef3589644e2896645e5dc5ba9c38 # v6
+        with:
+          node-version: 24.19.0
+          cache: npm
+          cache-dependency-path: publication/package-lock.json
+
+      - name: Confirm runtime and install locked dependencies
+        run: |
+          npm install --global npm@11.17.0
+          node --version
+          npm --version
+          npm ci
+
+      - name: Validate source, content, privacy, and pre-launch output
+        run: npm run verify
+
+      - name: Prove the public release profile fails closed
+        run: npm run verify:public-profile
+
+      - name: Install pinned Playwright browsers
+        run: npx --no-install playwright install --with-deps chromium firefox webkit
+
+      - name: Run cross-browser and accessibility tests
+        run: npm run test:e2e
+
+      - name: Install PDF inspection tools
+        run: |
+          sudo apt-get update
+          sudo apt-get install --yes --no-install-recommends poppler-utils
+
+      - name: Validate deterministic social export
+        env:
+          INCLUDE_FIXTURES: "1"
+          EXPORT_MODE: "1"
+        run: npm run export:verify
+
+      - name: Rebuild clean pre-launch output
+        run: |
+          npm run build
+          npm run privacy:scan
+          npm run verify:dist
+
+      - name: Validate Cloudflare package without deploying
+        env:
+          WRANGLER_LOG_PATH: /tmp/agentsutra-wrangler.log
+        run: npm run deploy:dry-run
+
+      - name: Rehearse clean source and validated preview archives
+        run: npm run release:artifacts

@@ -1,0 +1,79 @@
+---
+import SocialFrame from '../../../components/export/SocialFrame.astro';
+import { loadPublicationGraph } from '../../../lib/content';
+import type { Adaptation, ThreadDiagram } from '../../../schemas';
+import '../../../styles/global.css';
+import '../../../styles/export.css';
+
+export async function getStaticPaths() {
+  const enabled = process.env.INCLUDE_FIXTURES === '1' && process.env.EXPORT_MODE === '1';
+  if (!enabled) return [];
+
+  const graph = await loadPublicationGraph({ includeFixtures: true });
+  const diagrams = new Map(graph.threadDiagrams.map((diagram) => [diagram.id, diagram]));
+  const evidencePacks = new Map(graph.evidencePacks.map((pack) => [pack.id, pack]));
+  return graph.adaptations.flatMap((adaptation) => {
+    if (adaptation.export.format !== 'pdf') return [];
+    const evidencePack = evidencePacks.get(adaptation.evidencePackId);
+    if (!evidencePack) throw new Error(`${adaptation.id} has no linked evidence pack.`);
+    return [
+      {
+        params: { id: adaptation.id.toLowerCase() },
+        props: { adaptation, diagrams, evidencePack },
+      },
+    ];
+  });
+}
+
+const { adaptation, diagrams, evidencePack } = Astro.props as {
+  adaptation: Adaptation;
+  diagrams: Map<string, ThreadDiagram>;
+  evidencePack: import('../../../schemas').EvidencePack;
+};
+if (adaptation.export.format !== 'pdf') {
+  throw new Error(`${adaptation.id} is not a document export.`);
+}
+const documentExport = adaptation.export;
+---
+
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content={`width=${documentExport.width}, initial-scale=1`} />
+    <meta name="robots" content="noindex,nofollow" />
+    <title>{adaptation.id} — AgentSutra document export</title>
+  </head>
+  <body
+    class="document-export-page"
+    data-document-export
+    data-export-id={adaptation.id}
+    data-platform={adaptation.platform}
+    data-width={documentExport.width}
+    data-height={documentExport.height}
+    data-canonical-path={adaptation.canonicalPath}
+    data-caption={adaptation.caption}
+  >
+    {
+      adaptation.frames.map((frame) => {
+        const diagram = frame.diagramId ? diagrams.get(frame.diagramId) : undefined;
+        return diagram ? (
+          <SocialFrame
+            adaptation={adaptation}
+            evidencePack={evidencePack}
+            frame={frame}
+            diagram={diagram}
+            documentPage
+          />
+        ) : (
+          <SocialFrame
+            adaptation={adaptation}
+            evidencePack={evidencePack}
+            frame={frame}
+            documentPage
+          />
+        );
+      })
+    }
+  </body>
+</html>

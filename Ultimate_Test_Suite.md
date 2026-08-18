@@ -1,5 +1,10 @@
 # AgentSutra v9.0.0 — Ultimate Telegram Test Suite
 
+> **Archive notice:** The Mac mini that hosted this Runtime was reset. The Runtime is frozen and
+> unsupported. Do not execute this historical suite as production guidance without rebuilding the
+> environment, revalidating every prerequisite and reviewing the safety boundary. The active
+> flagship is the evidence-led publication in [`publication/`](publication/).
+
 > **Purpose:** Push every feature to its limit, discover pros and cons, and learn the best patterns for daily use. This suite tests quality, complexity, integration between features, adversarial edge cases, and the v8.5.2–v9.0.0 capabilities.
 >
 > **How to run:** Send each prompt via Telegram exactly as written. Keep `tail -f agentsutra.log` open in a parallel terminal.

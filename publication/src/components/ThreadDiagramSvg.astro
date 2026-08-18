@@ -1,0 +1,126 @@
+---
+import { threadEdgeSemantics, threadNodeSemantics } from '../schemas';
+import { wrapThreadLabel, type ThreadLayoutResult } from './thread-engine';
+
+interface Props {
+  result: ThreadLayoutResult;
+  variant: 'wide' | 'compact';
+  markerPrefix: string;
+}
+
+const { result, variant, markerPrefix } = Astro.props;
+const arrowId = `${markerPrefix}-${variant}-arrow`;
+const stageColor = {
+  intent: 'var(--violet)',
+  reasoning: 'var(--periwinkle)',
+  outcome: 'var(--cyan)',
+} as const;
+const nodeById = new Map(result.nodes.map((node) => [node.id, node]));
+---
+
+<svg
+  class={`thread__diagram thread__diagram--${variant}`}
+  viewBox={`0 0 ${result.width} ${result.height}`}
+  focusable="false"
+  aria-hidden="true"
+  data-thread-diagram
+  data-thread-variant={variant}
+>
+  <defs>
+    {
+      result.edges.map((edge) => {
+        const start = edge.points[0]!;
+        const end = edge.points.at(-1)!;
+        const fromStage = nodeById.get(edge.from)!.stage;
+        const toStage = nodeById.get(edge.to)!.stage;
+        return (
+          <linearGradient
+            id={`${markerPrefix}-${variant}-${edge.id}-gradient`}
+            gradientUnits="userSpaceOnUse"
+            x1={start.x}
+            y1={start.y}
+            x2={end.x}
+            y2={end.y}
+          >
+            <stop offset="0" stop-color={stageColor[fromStage]} />
+            <stop offset="1" stop-color={stageColor[toStage]} />
+          </linearGradient>
+        );
+      })
+    }
+    <marker
+      id={arrowId}
+      viewBox="0 0 10 10"
+      refX="8"
+      refY="5"
+      markerWidth="6"
+      markerHeight="6"
+      orient="auto-start-reverse"
+    >
+      <path d="M 0 0 L 10 5 L 0 10 z" fill="context-stroke"></path>
+    </marker>
+  </defs>
+
+  {
+    result.edges.map((edge) => (
+      <g
+        class={`thread__edge thread__edge--${edge.kind}`}
+        data-edge-id={edge.id}
+        data-edge-from={edge.from}
+        data-edge-to={edge.to}
+      >
+        <path
+          d={edge.path}
+          data-route-points={edge.points.map((point) => `${point.x},${point.y}`).join(' ')}
+          fill="none"
+          stroke={`url(#${markerPrefix}-${variant}-${edge.id}-gradient)`}
+          stroke-width="4"
+          vector-effect="non-scaling-stroke"
+          marker-end={`url(#${arrowId})`}
+        />
+        <text
+          class="thread__edge-label"
+          x={edge.labelPoint.x}
+          y={edge.labelPoint.y - 9}
+          text-anchor="middle"
+        >
+          {threadEdgeSemantics[edge.kind]}
+          {edge.label ? ` ${edge.label}` : ''}
+        </text>
+      </g>
+    ))
+  }
+
+  {
+    result.nodes.map((node) => {
+      const lines = wrapThreadLabel(node.label, variant === 'compact' ? 24 : 18);
+      return (
+        <g
+          class={`thread__node thread__node--${node.stage}`}
+          transform={`translate(${node.x} ${node.y})`}
+          data-node-id={node.id}
+          data-node-kind={node.kind}
+          data-node-stage={node.stage}
+        >
+          <rect
+            x={-node.width / 2}
+            y={-node.height / 2}
+            width={node.width}
+            height={node.height}
+            rx="12"
+          />
+          <text class="thread__node-symbol" x={-node.width / 2 + 20} y="7" text-anchor="middle">
+            {threadNodeSemantics[node.kind]}
+          </text>
+          <text class="thread__node-label" x={-node.width / 2 + 39} y={lines.length > 1 ? -8 : 5}>
+            {lines.map((line, index) => (
+              <tspan x={-node.width / 2 + 39} dy={index === 0 ? 0 : 17}>
+                {line}
+              </tspan>
+            ))}
+          </text>
+        </g>
+      );
+    })
+  }
+</svg>

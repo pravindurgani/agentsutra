@@ -1,0 +1,12 @@
+---
+interface Props {
+  line: string;
+}
+
+const { line } = Astro.props;
+---
+
+<section class="memory-line" aria-labelledby="sutra-title">
+  <p class="memory-line__label">The Sutra · one sentence to remember</p>
+  <blockquote id="sutra-title">{line}</blockquote>
+</section>

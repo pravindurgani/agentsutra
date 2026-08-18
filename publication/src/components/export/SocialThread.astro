@@ -1,0 +1,29 @@
+---
+import type { ThreadDiagram } from '../../schemas';
+
+interface Props {
+  diagram: ThreadDiagram;
+  markerPrefix: string;
+}
+
+const { diagram, markerPrefix } = Astro.props;
+---
+
+<div
+  class="export-thread"
+  aria-hidden="true"
+  data-export-thread={diagram.id}
+  data-export-thread-instance={markerPrefix}
+>
+  <p class="export-thread__title">{diagram.title}</p>
+  <ol class="export-thread__steps">
+    {
+      diagram.textSteps.map((step, index) => (
+        <li>
+          <span class="export-thread__knot">{String(index + 1).padStart(2, '0')}</span>
+          <span>{step.summary}</span>
+        </li>
+      ))
+    }
+  </ol>
+</div>

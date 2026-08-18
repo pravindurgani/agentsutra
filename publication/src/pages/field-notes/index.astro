@@ -1,0 +1,58 @@
+---
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import { getVisibleFieldNotes } from '../../lib/content';
+
+const notes = await getVisibleFieldNotes();
+const publicLaunch = process.env.PUBLIC_LAUNCH === '1';
+---
+
+<BaseLayout
+  title="Field Notes — AgentSutra"
+  description="Accessible, evidence-bounded lessons drawn from real AI systems work and designed for practical use."
+  canonicalPath="/field-notes/"
+>
+  <header class="page-intro">
+    <div class="page-intro__grid shell">
+      <p class="page-intro__context">Lesson archive</p>
+      <div>
+        <h1>Field Notes</h1>
+        <p class="page-intro__lead">
+          Each note begins with a practical AI problem, explains the mechanism, shows what supports
+          the claim, names the limit, and ends with one action.
+        </p>
+      </div>
+    </div>
+  </header>
+  <section class="page-section">
+    <div class="section-grid shell">
+      <h2>All reviewed Field Notes</h2>
+      {
+        notes.length > 0 ? (
+          <div class="note-ledger">
+            {notes.map((note) => (
+              <article class="note-record">
+                <p class="note-record__folio">{note.id}</p>
+                <h2>
+                  <a href={`/field-notes/${note.slug}/`}>{note.title}</a>
+                </h2>
+                <p class="note-record__answer">{note.answer}</p>
+                <p class="note-record__meta">
+                  {note.arc} / {note.difficulty}
+                </p>
+              </article>
+            ))}
+          </div>
+        ) : (
+          <div class="pilot-empty" data-empty-state="field-notes">
+            <strong>No public Field Notes yet</strong>
+            <p>
+              Three pilot lessons must be completed and reader-tested before launch. They will
+              appear here only after comprehension, evidence, privacy and accessibility review.
+            </p>
+            {!publicLaunch && <a href="/method/">See the review method</a>}
+          </div>
+        )
+      }
+    </div>
+  </section>
+</BaseLayout>

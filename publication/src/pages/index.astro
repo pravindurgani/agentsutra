@@ -1,0 +1,253 @@
+---
+import BaseLayout from '../layouts/BaseLayout.astro';
+import AgentThread from '../components/AgentThread.astro';
+import { getVisibleFieldNotes } from '../lib/content';
+
+const notes = await getVisibleFieldNotes();
+const latest = notes.slice(0, 3);
+const featured = latest[0];
+const publicLaunch = process.env.PUBLIC_LAUNCH === '1';
+const threadNodes = [
+  {
+    id: 'problem',
+    label: 'Problem',
+    kind: 'state' as const,
+    description: 'Start with a situation you recognise.',
+  },
+  {
+    id: 'mechanism',
+    label: 'Mechanism',
+    kind: 'process' as const,
+    description: 'Explain what the AI system is actually doing.',
+  },
+  {
+    id: 'evidence',
+    label: 'Evidence',
+    kind: 'process' as const,
+    description: 'Show what was observed, repeated or measured.',
+  },
+  {
+    id: 'limit',
+    label: 'Limit',
+    kind: 'decision' as const,
+    description: 'Name what the evidence cannot establish.',
+  },
+  {
+    id: 'action',
+    label: 'Action',
+    kind: 'verified' as const,
+    description: 'Leave with one change you can try today.',
+  },
+];
+---
+
+<BaseLayout>
+  <div class="home-field">
+    <section class="home-hero" aria-labelledby="home-title" data-thread-stage="intent">
+      <div class="home-hero__grid shell">
+        <aside class="home-hero__status" aria-label="Publication status">
+          {
+            publicLaunch ? (
+              <>
+                <p>Public field lab</p>
+                <strong>{notes.length} PUBLISHED</strong>
+                <p>Every listed Field Note has passed its evidence and privacy gates.</p>
+              </>
+            ) : (
+              <>
+                <p>Pilot preparation</p>
+                <strong>NO PUBLIC NOTES YET</strong>
+                <p>Three pilot lessons must be completed and reader-tested before launch.</p>
+              </>
+            )
+          }
+        </aside>
+        <div class="home-hero__copy">
+          <h1 id="home-title">Push the model.<br />Inspect the failure.<br />Keep the lesson.</h1>
+          <p class="home-hero__lead">
+            {
+              publicLaunch
+                ? 'AgentSutra turns first-hand experiments with AI tools and agents into visual Field Notes: what happened, why it happened, what the evidence cannot prove, and one thing you can use today.'
+                : 'AgentSutra turns first-hand experiments with AI tools and agents into visual Field Notes: what happened, why it happened, what the evidence cannot prove, and one thing you can use today. No public notes have been released yet.'
+            }
+          </p>
+          <nav class="home-hero__actions" aria-label="Start exploring">
+            {
+              publicLaunch ? (
+                featured ? (
+                  <a class="button button--primary" href={`/field-notes/${featured.slug}/`}>
+                    Read {featured.id}
+                  </a>
+                ) : null
+              ) : (
+                <a class="button button--primary" href="#how-field-notes-work">
+                  See how a Field Note works
+                </a>
+              )
+            }
+            <a class="text-link" href="/method/"
+              >How claims are checked <span aria-hidden="true">→</span></a
+            >
+          </nav>
+        </div>
+        <div class="home-hero__thread" aria-hidden="true">
+          <span class="home-hero__node home-hero__node--intent"></span>
+          <span class="home-hero__node home-hero__node--decision"></span>
+          <span class="home-hero__node home-hero__node--outcome"></span>
+        </div>
+      </div>
+    </section>
+
+    <section
+      class="page-section origin-section"
+      aria-labelledby="origin-title"
+      data-thread-stage="reason"
+    >
+      <div class="origin-section__grid shell">
+        <p class="origin-section__label">Why AgentSutra exists</p>
+        <div>
+          <h2 id="origin-title">The ambitious system did not arrive. The useful questions did.</h2>
+          <p>
+            AgentSutra began as an attempt to push general-purpose AI towards persistent, useful
+            work. It did not become a finished autonomous system. It produced failures, revisions
+            and practical questions worth examining. This publication keeps that history visible and
+            teaches only what the evidence can support.
+          </p>
+        </div>
+      </div>
+    </section>
+
+    <section
+      class="page-section thread-map"
+      id="how-field-notes-work"
+      aria-labelledby="thread-map-title"
+      data-thread-stage="judge"
+    >
+      <div class="thread-map__grid shell">
+        <header class="thread-map__intro">
+          <h2 id="thread-map-title">What every Field Note answers</h2>
+          <p>
+            Read through the action for a complete practical lesson. Continue into sources, versions
+            and corrections when you want to inspect the technical record.
+          </p>
+        </header>
+        <div class="thread-map__diagram">
+          <AgentThread title="One lesson, from problem to action" nodes={threadNodes} />
+        </div>
+      </div>
+    </section>
+
+    {
+      publicLaunch && featured ? (
+        <section
+          class="page-section specimen-section"
+          id="featured-field-note"
+          aria-labelledby="featured-note-title"
+          data-thread-stage="judge"
+        >
+          <article class="specimen shell">
+            <header class="specimen__header">
+              <p class="specimen__folio">Field Note / {featured.id}</p>
+              <div class="specimen__stamps" aria-label="Publication status">
+                <span>Reviewed Field Note</span>
+                <span>{featured.lifecycle === 'corrected' ? 'CORRECTED' : 'PUBLISHED'}</span>
+              </div>
+              <h2 id="featured-note-title">
+                <a href={`/field-notes/${featured.slug}/`}>{featured.title}</a>
+              </h2>
+              <p>{featured.answer}</p>
+            </header>
+            <dl class="specimen__ledger">
+              <div>
+                <dt>Question</dt>
+                <dd>{featured.beats.problem}</dd>
+              </div>
+              <div>
+                <dt>Mechanism</dt>
+                <dd>{featured.beats.mechanism}</dd>
+              </div>
+              <div>
+                <dt>Evidence</dt>
+                <dd>{featured.beats.evidenceSummary}</dd>
+              </div>
+              <div>
+                <dt>Boundary</dt>
+                <dd>{featured.beats.boundary}</dd>
+              </div>
+              <div>
+                <dt>Transfer</dt>
+                <dd>{featured.beats.transfer}</dd>
+              </div>
+            </dl>
+            <p class="specimen__action">
+              <a class="text-link" href={`/field-notes/${featured.slug}/`}>
+                Read the complete Field Note <span aria-hidden="true">→</span>
+              </a>
+            </p>
+          </article>
+        </section>
+      ) : null
+    }
+
+    <section
+      class="page-section publication-status"
+      aria-labelledby="field-notes-title"
+      data-thread-stage="boundary"
+    >
+      <div class="publication-status__grid shell">
+        <header>
+          <h2 id="field-notes-title">Field Notes</h2>
+          <p>
+            {
+              publicLaunch
+                ? 'Each reviewed lesson starts with a practical AI problem and keeps its evidence, limit and action together.'
+                : 'No public Field Notes yet. Three pilot lessons must pass comprehension, evidence, privacy and accessibility review before launch.'
+            }
+          </p>
+        </header>
+        {
+          latest.length > 0 ? (
+            <div class="note-ledger">
+              {latest.map((note) => (
+                <article class="note-record">
+                  <p class="note-record__folio">{note.id}</p>
+                  <h3>
+                    <a href={`/field-notes/${note.slug}/`}>{note.title}</a>
+                  </h3>
+                  <p class="note-record__answer">{note.answer}</p>
+                  <p class="note-record__meta">
+                    {note.arc} / {note.difficulty}
+                  </p>
+                </article>
+              ))}
+            </div>
+          ) : (
+            <div class="pilot-empty">
+              <strong>{publicLaunch ? 'Release blocked' : 'Pilot preparation'}</strong>
+              <p>
+                {publicLaunch
+                  ? 'The public profile requires at least one evidence-reviewed Field Note.'
+                  : 'The engineering fixture is not a lesson. The archive opens only when a real note survives reader and evidence review.'}
+              </p>
+            </div>
+          )
+        }
+        <p class="publication-status__action">
+          <a class="text-link" href="/field-notes/"
+            >Open the Field Note register <span aria-hidden="true">→</span></a
+          >
+        </p>
+      </div>
+    </section>
+
+    <section class="home-sutra" aria-labelledby="home-sutra-title" data-thread-stage="outcome">
+      <div class="home-sutra__grid shell">
+        <p>The Sutra · one sentence to remember</p>
+        <blockquote id="home-sutra-title">Follow the Thread. Keep the limit in view.</blockquote>
+        <a class="text-link" href="/start-here/"
+          >Choose how deeply to read <span aria-hidden="true">→</span></a
+        >
+      </div>
+    </section>
+  </div>
+</BaseLayout>

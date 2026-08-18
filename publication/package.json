@@ -1,0 +1,56 @@
+{
+  "name": "agentsutra.dev",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "engines": {
+    "node": "24.19.0",
+    "npm": "11.17.0"
+  },
+  "scripts": {
+    "dev": "astro dev",
+    "build": "npm run build:prelaunch",
+    "build:prelaunch": "node scripts/build-profile.mjs prelaunch",
+    "build:public": "node scripts/build-profile.mjs public",
+    "build:fixtures": "ASTRO_OUT_DIR=.fixture-dist INCLUDE_FIXTURES=1 astro build --force",
+    "build:exports": "INCLUDE_FIXTURES=1 EXPORT_MODE=1 astro build --outDir .export-dist --force",
+    "preview": "astro preview",
+    "check": "astro check",
+    "format": "prettier --write .",
+    "format:check": "prettier --check .",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "test:e2e": "npm run build:prelaunch && playwright test && npm run verify:dist",
+    "test:e2e:update": "playwright test --update-snapshots",
+    "privacy:scan": "node scripts/privacy-scan.mjs",
+    "release:source": "node scripts/create-release-archive.mjs source",
+    "release:preview": "node scripts/create-release-archive.mjs preview",
+    "release:artifacts": "node scripts/create-release-archive.mjs all",
+    "export:social": "node scripts/export-social.mjs",
+    "export:verify": "node scripts/verify-export-replay.mjs",
+    "verify:export-artifacts": "node scripts/validate-export-artifacts.mjs",
+    "verify:dist": "node scripts/validate-dist.mjs",
+    "verify:public-profile": "node scripts/verify-public-profile.mjs",
+    "verify": "npm run format:check && npm run check && npm test && npm run build:prelaunch && npm run privacy:scan && npm run verify:dist",
+    "deploy:dry-run": "wrangler deploy --dry-run",
+    "astro": "astro"
+  },
+  "dependencies": {
+    "@astrojs/rss": "4.0.19",
+    "@astrojs/sitemap": "3.7.3",
+    "astro": "7.2.2",
+    "yaml": "2.9.0"
+  },
+  "devDependencies": {
+    "@astrojs/check": "0.9.10",
+    "@axe-core/playwright": "4.13.0",
+    "@playwright/test": "1.62.1",
+    "@types/node": "24.13.3",
+    "prettier": "3.9.6",
+    "prettier-plugin-astro": "0.14.1",
+    "sharp": "0.35.3",
+    "typescript": "6.0.3",
+    "vitest": "4.1.10",
+    "wrangler": "4.123.0"
+  }
+}

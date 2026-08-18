@@ -1,0 +1,125 @@
+---
+import BaseLayout from '../layouts/BaseLayout.astro';
+
+const publicLaunch = process.env.PUBLIC_LAUNCH === '1';
+---
+
+<BaseLayout
+  title="Editorial and evidence method — AgentSutra"
+  description="How AgentSutra turns observations into accessible lessons without hiding uncertainty, provenance or corrections."
+  canonicalPath="/method/"
+>
+  <header class="page-intro">
+    <div class="page-intro__grid shell">
+      <p class="page-intro__context">Publication method</p>
+      <div>
+        <h1>How to trust a Field Note.</h1>
+        <p class="page-intro__lead">
+          Every lesson separates what happened, what it might mean, what it does not prove, and what
+          changed after review.
+        </p>
+      </div>
+    </div>
+  </header>
+  <section class="page-section">
+    <div class="shell prose">
+      <h2>What every published note shows</h2>
+      <ul class="trust-list">
+        <li>One useful claim in plain language.</li>
+        <li>What was observed, reproduced or measured.</li>
+        <li>A visible limitation beside the advice.</li>
+        <li>The method and sources available for inspection.</li>
+        <li>Material corrections retained as part of the public record.</li>
+      </ul>
+
+      <h2>What the evidence labels mean</h2>
+      <dl class="definition-list evidence-glossary">
+        <dt>Observed</dt><dd>Seen in one stated setting; it may not generalise.</dd>
+        <dt>Reproduced</dt><dd>Repeated under the stated conditions.</dd>
+        <dt>Measured</dt><dd>Counted using the stated setup and denominator.</dd>
+        <dt>Bounded</dt><dd>Useful only within the stated limits.</dd>
+        <dt>Corrected</dt><dd>The published claim or evidence materially changed.</dd>
+        <dt>Withdrawn</dt><dd>The claim is no longer supported.</dd>
+      </dl>
+
+      <h2>Corrections and AI use</h2>
+      <p id="editor">
+        Material corrections remain visible instead of silently replacing the earlier record.
+        AgentSutra is an independent publication created and edited by <a
+          href="https://github.com/pravindurgani"
+          rel="author me">Pravin Durgani</a
+        >. Instagram and TikTok can remain faceless and publication-led; the canonical site and
+        professional portfolio identify the creator, so this is editorial distance rather than
+        strict anonymity. AI may assist research, structure or production; Pravin remains
+        accountable for the claim, evidence, limitation, sources and release decision.
+      </p>
+      <p>
+        AgentSutra publishes sanitised mechanisms, never raw operational evidence, client
+        identities, credentials, personal paths or infrastructure topology. An opaque private
+        evidence identifier can preserve provenance without exposing its source.
+      </p>
+
+      <h2>How a note is made</h2>
+      <ol class="step-list">
+        <li>
+          <strong>Observe:</strong> start from a real problem, experiment, failure or correction.
+        </li>
+        <li>
+          <strong>Reduce:</strong> choose one central claim and the audience problem it resolves.
+        </li>
+        <li><strong>Prove:</strong> assemble an evidence pack appropriate to the claim’s risk.</li>
+        <li>
+          <strong>Explain:</strong> build one Thread, a visible text equivalent and one practical transfer.
+        </li>
+        <li>
+          <strong>Review:</strong> run privacy, factual, accessibility, visual and production gates.
+        </li>
+        <li>
+          <strong>Publish:</strong> release a canonical page, then adapt it without changing its central
+          claim.
+        </li>
+        <li>
+          <strong>Learn:</strong> collect corrections, reader comprehension and interview explanations.
+        </li>
+      </ol>
+
+      <h2>For technical reviewers: internal review levels</h2>
+      <p>
+        These levels determine how much review a claim requires. They are not truth scores or reader
+        difficulty ratings.
+      </p>
+      <dl class="definition-list">
+        <dt>Class A · Explain</dt><dd>
+          A mental model or personal observation. Requires honest framing, source notes where
+          relevant and editorial review.
+        </dd>
+        <dt>Class B · Demonstrate</dt><dd>
+          An implementation or incident. Requires a reproducible mechanism or clearly labelled
+          historical evidence, plus limitations.
+        </dd>
+        <dt>Class C · Measure</dt><dd>
+          A number, benchmark or comparison. Requires a versioned setup, denominator, environment,
+          retained result and uncertainty.
+        </dd>
+        <dt>Class D · Protect</dt><dd>
+          A security, safety, infrastructure or career claim. Requires the strongest review, current
+          verification and explicit residual risk. Independent approval must come from a named human
+          reviewer with relevant expertise, a disclosed relationship and a dated attestation; an AI
+          critique cannot satisfy this requirement.
+        </dd>
+      </dl>
+
+      {
+        !publicLaunch && (
+          <aside class="method-fixture-note">
+            <strong>Engineering fixture · not a public lesson</strong>
+            <p>
+              FN-000 exists only in isolated test builds. It checks the publishing software and
+              proves nothing about a real AI system, a useful lesson or audience comprehension.
+            </p>
+          </aside>
+        )
+      }
+    </div>
+  </section>
+</BaseLayout>

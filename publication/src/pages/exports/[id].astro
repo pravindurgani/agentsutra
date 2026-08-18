@@ -1,0 +1,59 @@
+---
+import SocialFrame from '../../components/export/SocialFrame.astro';
+import { loadPublicationGraph } from '../../lib/content';
+import '../../styles/global.css';
+import '../../styles/export.css';
+
+export async function getStaticPaths() {
+  const enabled = process.env.INCLUDE_FIXTURES === '1' && process.env.EXPORT_MODE === '1';
+  if (!enabled) return [];
+
+  const graph = await loadPublicationGraph({ includeFixtures: true });
+  const diagrams = new Map(graph.threadDiagrams.map((diagram) => [diagram.id, diagram]));
+  const evidencePacks = new Map(graph.evidencePacks.map((pack) => [pack.id, pack]));
+  return graph.adaptations.flatMap((adaptation) => {
+    const imageExport =
+      adaptation.export.format === 'png' ||
+      (adaptation.export.format === 'markdown' && adaptation.export.companionImage);
+    if (!imageExport) return [];
+    const evidencePack = evidencePacks.get(adaptation.evidencePackId);
+    if (!evidencePack) throw new Error(`${adaptation.id} has no linked evidence pack.`);
+    return adaptation.frames.map((frame) => ({
+      params: { id: `${adaptation.id.toLowerCase()}-${String(frame.index).padStart(2, '0')}` },
+      props: {
+        adaptation,
+        evidencePack,
+        frame,
+        ...(frame.diagramId && diagrams.get(frame.diagramId)
+          ? { diagram: diagrams.get(frame.diagramId) }
+          : {}),
+      },
+    }));
+  });
+}
+
+const { adaptation, evidencePack, frame, diagram } = Astro.props;
+const exportId = `${adaptation.id}-${String(frame.index).padStart(2, '0')}`;
+const width =
+  adaptation.export.format === 'markdown'
+    ? adaptation.export.companionImage?.width
+    : adaptation.export.width;
+---
+
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content={`width=${width}, initial-scale=1`} />
+    <meta name="robots" content="noindex,nofollow" />
+    <title>{exportId} — AgentSutra export</title>
+  </head>
+  <body class="social-export-page">
+    <SocialFrame
+      adaptation={adaptation}
+      evidencePack={evidencePack}
+      frame={frame}
+      {...diagram ? { diagram } : {}}
+    />
+  </body>
+</html>

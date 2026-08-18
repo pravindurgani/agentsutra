@@ -1,5 +1,10 @@
 # AgentSutra — Capabilities & Usage Guide
 
+> **Archive notice:** The Mac mini that hosted this Runtime was reset. The Runtime is frozen,
+> unsupported and not presented as currently operating. This guide is retained as historical
+> documentation; operational claims require fresh verification before reuse. The active flagship is
+> the evidence-led publication in [`publication/`](publication/).
+
 > **Version:** 9.0.0 | **Last updated:** March 2026
 
 A fully autonomous AI agent controlled via Telegram, running on Mac Mini M2. Claude Sonnet generates, Claude Opus audits. Full shell access, internet, local AI, big data, frontend generation, static deployment, visual verification — all from your phone. Hardened with defense-in-depth security.

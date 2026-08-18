@@ -1,0 +1,215 @@
+---
+import { getCollection, render } from 'astro:content';
+import AgentThread from '../../components/AgentThread.astro';
+import BoundaryPanel from '../../components/BoundaryPanel.astro';
+import EvidencePanel from '../../components/EvidencePanel.astro';
+import FieldNoteHeader from '../../components/FieldNoteHeader.astro';
+import MemoryLine from '../../components/MemoryLine.astro';
+import SourcesList, { type SourceItem } from '../../components/SourcesList.astro';
+import UseToday from '../../components/UseToday.astro';
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import { getVisibleFieldNotes, loadPublicationGraph } from '../../lib/content';
+import { getPublicEvidencePresentation, publicEvidenceMeanings } from '../../lib/public-evidence';
+import { selectVisibleRelatedNotes } from '../../lib/related-notes';
+import { defaultShareImage } from '../../lib/share-images';
+
+export async function getStaticPaths() {
+  const includeFixtures = process.env.INCLUDE_FIXTURES === '1';
+  const visible = await getVisibleFieldNotes({ includeFixtures });
+  const visibleIds = new Set(visible.map((note) => note.id));
+  const entries = await getCollection('fieldNotes');
+  return entries
+    .filter((entry) => visibleIds.has(entry.data.id))
+    .map((note) => ({ params: { slug: note.data.slug }, props: { note } }));
+}
+
+const { note } = Astro.props;
+const includeFixtures = process.env.INCLUDE_FIXTURES === '1';
+const graph = await loadPublicationGraph({ includeFixtures });
+const evidence = graph.evidencePacks.find((pack) => pack.id === note.data.evidencePackId);
+const diagram = graph.threadDiagrams.find((item) => item.id === note.data.diagramId);
+
+if (!evidence || !diagram) {
+  throw new Error(`Publication graph is incomplete for ${note.data.id}.`);
+}
+
+const { Content } = await render(note);
+const visibleNotes = await getVisibleFieldNotes({ includeFixtures });
+const related = selectVisibleRelatedNotes(
+  graph.fieldNotes,
+  visibleNotes,
+  note.data.relations.related,
+);
+const sources: SourceItem[] = evidence.evidence.map((item) => {
+  if (item.source.access === 'public') {
+    return {
+      title: item.source.label,
+      url: item.source.url,
+      note: item.limitation,
+      accessedAt: item.observedAt,
+    };
+  }
+  if (item.source.access === 'private') {
+    return {
+      title: 'Sanitised private evidence',
+      note: `${item.source.publicDescription} Boundary: ${item.limitation}`,
+      accessedAt: item.observedAt,
+    };
+  }
+  return {
+    title: 'Synthetic evidence fixture',
+    note: `${item.source.note} Boundary: ${item.limitation}`,
+    accessedAt: item.observedAt,
+  };
+});
+
+const canonicalPath = `/field-notes/${note.data.slug}/`;
+const origin = Astro.site ?? new URL('https://agentsutra.dev');
+const canonicalUrl = new URL(canonicalPath, origin).toString();
+const publicationId = new URL('/#publication', origin).toString();
+const creatorId = new URL('/#creator', origin).toString();
+const creatorUrl = new URL('/method/#editor', origin).toString();
+const websiteId = new URL('/#website', origin).toString();
+const shareImage = note.data.shareImage ?? defaultShareImage;
+const shareImageUrl = new URL(shareImage.src, origin).toString();
+const updatedLabel = new Intl.DateTimeFormat('en-GB', {
+  day: 'numeric',
+  month: 'short',
+  year: 'numeric',
+  timeZone: 'UTC',
+}).format(new Date(note.data.dates.updated));
+const evidencePresentation = getPublicEvidencePresentation(evidence);
+const structuredData = {
+  '@context': 'https://schema.org',
+  '@type': 'Article',
+  '@id': `${canonicalUrl}#article`,
+  headline: note.data.title,
+  description: note.data.description,
+  datePublished: note.data.dates.published,
+  dateModified: note.data.dates.updated,
+  inLanguage: 'en',
+  isAccessibleForFree: true,
+  articleSection: note.data.arc,
+  mainEntityOfPage: { '@type': 'WebPage', '@id': canonicalUrl },
+  isPartOf: { '@id': websiteId },
+  publisher: { '@id': publicationId },
+  author: { '@id': creatorId },
+  creator: { '@id': creatorId },
+  image: {
+    '@type': 'ImageObject',
+    url: shareImageUrl,
+    contentUrl: shareImageUrl,
+    width: shareImage.width,
+    height: shareImage.height,
+    caption: shareImage.alt,
+  },
+};
+---
+
+<BaseLayout
+  title={`${note.data.title} — AgentSutra`}
+  description={note.data.description}
+  canonicalPath={canonicalPath}
+  noindex={process.env.PUBLIC_LAUNCH !== '1' || note.data.fixture}
+  image={shareImage.src}
+  imageAlt={shareImage.alt}
+  imageWidth={shareImage.width}
+  imageHeight={shareImage.height}
+  ogType="article"
+  publishedTime={note.data.dates.published}
+  modifiedTime={note.data.dates.updated}
+  articleAuthor={creatorUrl}
+  articleSection={note.data.arc}
+  structuredData={structuredData}
+>
+  <article class="field-note">
+    <FieldNoteHeader
+      id={note.data.id}
+      title={note.data.title}
+      answer={note.data.answer}
+      arc={note.data.arc}
+      difficulty={note.data.difficulty}
+      publishedAt={note.data.dates.published}
+      reviewedAt={note.data.dates.reviewed}
+      evidenceStatus={evidencePresentation.statusLabel}
+      evidenceMeaning={publicEvidenceMeanings[evidencePresentation.statusLabel]}
+    />
+
+    <div class="shell page-section">
+      <div class="prose field-note__opening">
+        <p class="field-note__byline">
+          <small>
+            Created and edited by <a href="/method/#editor" rel="author">Pravin Durgani</a>
+            <span aria-hidden="true"> · </span>
+            Updated <time datetime={note.data.dates.updated}>{updatedLabel}</time>
+          </small>
+        </p>
+        <p>{note.data.description}</p>
+        <h2>The problem</h2>
+        <p>{note.data.beats.problem}</p>
+        <h2>What you might expect</h2>
+        <p>{note.data.beats.naiveModel}</p>
+        <h2>What is actually happening</h2>
+        <p>{note.data.beats.mechanism}</p>
+      </div>
+
+      <AgentThread
+        title={diagram.title}
+        layout={diagram.layout}
+        nodes={diagram.nodes}
+        edges={diagram.edges}
+        textSteps={diagram.textSteps}
+      />
+
+      <div class="prose">
+        <h2>Why this happens</h2>
+        <Content />
+        <h2>What the evidence showed</h2>
+        <p>{note.data.beats.evidenceSummary}</p>
+      </div>
+
+      <EvidencePanel pack={evidence} />
+      <BoundaryPanel
+        boundary={evidence.boundary.statement}
+        doesNotProve={evidence.boundary.doesNotProve}
+      />
+      <UseToday action={evidence.transfer.action} precondition={evidence.transfer.precondition} />
+      <MemoryLine line={note.data.beats.memoryLine} />
+
+      <section class="content-panel depth-door" aria-labelledby="depth-door-title">
+        <p class="content-panel__label">Inspect the technical record</p>
+        <div>
+          <h2 id="depth-door-title">Methods, sources and implementation detail</h2><p>
+            {note.data.beats.depthDoor}
+          </p>
+        </div>
+      </section>
+
+      <SourcesList sources={sources} />
+
+      <section class="content-panel editorial-record" aria-labelledby="editorial-title">
+        <p class="content-panel__label">Editorial record</p>
+        <div>
+          <h2 id="editorial-title">Disclosure and corrections</h2>
+          <p>{note.data.aiDisclosure}</p>
+          <p><strong>Correction status:</strong> {evidence.correctionStatus}.</p>
+        </div>
+      </section>
+
+      {
+        related.length > 0 && (
+          <nav class="content-panel" aria-labelledby="related-title">
+            <h2 id="related-title">Related Field Notes</h2>
+            <ul>
+              {related.map((entry) => (
+                <li>
+                  <a href={`/field-notes/${entry.slug}/`}>{entry.title}</a>
+                </li>
+              ))}
+            </ul>
+          </nav>
+        )
+      }
+    </div>
+  </article>
+</BaseLayout>

@@ -1,0 +1,17 @@
+- schemaVersion: '1.0'
+  id: IV-FN-000
+  fieldNoteId: FN-000
+  centralClaim: 'Synthetic fixture claim: a deliberately fictional record can test the complete AgentSutra publishing contract without asserting anything about a real system.'
+  explanations:
+    seconds30: 'FN-000 is an explicitly synthetic record that tests whether five publication artifacts remain linked, bounded, and private. It validates the contract, not a real lesson.'
+    seconds90: 'I created FN-000 as a deliberately fictional Field Note because testing only with polished real content can hide edge cases. It stresses long titles, the maximum five supporting claims, every diagram stage, four platform adaptations, and all interview outputs. The build compares exact central claims and rejects missing or unsafe references. Its evidence boundary is essential: a passing fixture demonstrates contract consistency only, never the truth of a future public claim.'
+    minutes3: 'The problem was how to validate a content system before publishing any real educational claim. I modelled a Field Note as five linked records: the canonical Markdown note, a risk-classed evidence pack, a typed Thread diagram with visible text steps, platform adaptations, and interview rehearsal. FN-000 is reserved as the only fixture identifier and can load only in explicit fixture mode. Every schema is strict, the graph requires exact central-claim equality, private sources accept only opaque evidence identifiers, and high-risk states have stronger lifecycle gates. The fixture deliberately reaches shape limits without claiming a real system behaved in any particular way. That boundary is the design lesson: validation evidence must never be promoted into subject-matter evidence. I would still add rendered accessibility and audience-comprehension tests before trusting the complete publication workflow.'
+  interviewQuestions:
+    - 'How did you prevent a platform adaptation from changing the canonical lesson claim during editing?'
+    - 'Why did you model private evidence as an opaque identifier instead of a path or protected URL?'
+    - 'What does a passing synthetic fixture establish, and what important properties remain unverified?'
+  counterargument: 'A synthetic fixture can create false confidence if its happy path is mistaken for evidence that real content and external platforms will behave correctly.'
+  example:
+    kind: synthetic
+    text: 'The FN-000 fixture deliberately reaches the five-supporting-claim limit and connects four platform records to one fictional central claim.'
+  wouldDoDifferently: 'I would add property-based schema generation after the first three real pilots reveal which combinations of valid fields create unexpected rendering pressure.'

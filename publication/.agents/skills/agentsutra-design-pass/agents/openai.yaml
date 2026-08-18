@@ -1,0 +1,4 @@
+interface:
+  display_name: 'AgentSutra Design Pass'
+  short_description: 'Render, critique, and refine AgentSutra surfaces'
+  default_prompt: 'Use $agentsutra-design-pass to improve this AgentSutra surface through one evidence-led render and critique pass.'
