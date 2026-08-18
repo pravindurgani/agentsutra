@@ -42,7 +42,10 @@ test.describe('canonical static experience', () => {
   });
 
   test('ships distinct automatic dark and Daylight Proof themes', async ({ page, browserName }) => {
-    test.skip(browserName !== 'chromium', 'Computed theme tokens run once in Chromium');
+    test.skip(
+      browserName !== 'chromium',
+      '[PW-SKIP-001] Exact computed theme-token assertions run once in Chromium',
+    );
     await page.goto('/');
 
     await expect(page.locator('meta[name="color-scheme"]')).toHaveAttribute(
@@ -108,7 +111,10 @@ test.describe('canonical static experience', () => {
   });
 
   test('reflows at the complete release viewport matrix', async ({ page, browserName }) => {
-    test.skip(browserName !== 'chromium', 'The full viewport matrix runs once in Chromium');
+    test.skip(
+      browserName !== 'chromium',
+      '[PW-SKIP-002] The complete viewport matrix runs once in Chromium',
+    );
     for (const viewport of [
       { width: 320, height: 800 },
       { width: 390, height: 844 },

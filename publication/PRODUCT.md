@@ -27,7 +27,7 @@ AgentSutra is a public field laboratory, not a feed of AI tips. One validated so
 - One substantial Field Note per week after the private-pilot gate.
 - Canonical accessible pages live on `agentsutra.dev`.
 - Static adaptations serve Instagram, TikTok, LinkedIn, and Reddit without changing the central claim.
-- Instagram and TikTok are anonymous-first AgentSutra surfaces. Reddit is pseudonymous and discussion-first. LinkedIn and portfolio surfaces may attribute the work to Pravin without inventing a separate author persona.
+- Instagram and TikTok are faceless, publication-led AgentSutra surfaces—not promises of strict anonymity. Reddit is pseudonymous and discussion-first. The canonical site, LinkedIn and portfolio surfaces attribute the work to Pravin without inventing a separate author persona.
 - Three private pilots must test a low-density mental model, a branching or looping mechanism, and an evidence-heavy comparison before launch.
 - Each issue generates 30-second, 90-second, and 3-minute interview explanations, one counterargument, and one reflection on what the creator would do differently.
 

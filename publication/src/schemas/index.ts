@@ -1,6 +1,6 @@
 export { adaptationSchema, platformAdaptationContracts, type Adaptation } from './adaptation';
 export { evidencePackSchema, type EvidencePack } from './evidence-pack';
-export { fieldNoteSchema, type FieldNote } from './field-note';
+export { fieldNoteSchema, shareImageSchema, type FieldNote, type ShareImage } from './field-note';
 export { interviewSchema, type Interview } from './interview';
 export {
   threadDiagramSchema,

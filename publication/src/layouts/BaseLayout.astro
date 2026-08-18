@@ -1,6 +1,7 @@
 ---
 import SiteFooter from '../components/SiteFooter.astro';
 import SiteHeader from '../components/SiteHeader.astro';
+import { defaultShareImage } from '../lib/share-images';
 import '../styles/global.css';
 
 interface Props {
@@ -10,40 +11,75 @@ interface Props {
   noindex?: boolean;
   image?: string;
   imageAlt?: string;
+  imageWidth?: number;
+  imageHeight?: number;
+  ogType?: 'website' | 'article';
+  publishedTime?: string | undefined;
+  modifiedTime?: string | undefined;
+  articleAuthor?: string | undefined;
+  articleSection?: string | undefined;
   structuredData?: Record<string, unknown> | Record<string, unknown>[];
 }
 
 const publicLaunch = process.env.PUBLIC_LAUNCH === '1';
+const siteDescription =
+  'AgentSutra turns first-hand experiments with AI tools and agents into visual Field Notes: what happened, why it happened, what the evidence cannot prove, and one thing you can use today.';
 const {
   title = 'AgentSutra — AI experiments, failures and practical lessons',
-  description = 'First-hand experiments with AI tools and agents, turned into visual Field Notes with evidence, limits, corrections and one practical action.',
+  description = siteDescription,
   canonicalPath = Astro.url.pathname,
   noindex = !publicLaunch,
-  image,
-  imageAlt,
+  image = defaultShareImage.src,
+  imageAlt = defaultShareImage.alt,
+  imageWidth = defaultShareImage.width,
+  imageHeight = defaultShareImage.height,
+  ogType = 'website',
+  publishedTime,
+  modifiedTime,
+  articleAuthor,
+  articleSection,
   structuredData,
 } = Astro.props;
 
 const origin = Astro.site ?? new URL('https://agentsutra.dev');
 const canonical = new URL(canonicalPath, origin);
 const siteUrl = new URL('/', origin).toString();
+const websiteId = new URL('/#website', origin).toString();
+const publicationId = new URL('/#publication', origin).toString();
+const creatorId = new URL('/#creator', origin).toString();
+const methodUrl = new URL('/method/#editor', origin).toString();
 const socialImage = image ? new URL(image, origin).toString() : undefined;
 const siteStructuredData: Record<string, unknown>[] = [
   {
     '@context': 'https://schema.org',
     '@type': 'WebSite',
+    '@id': websiteId,
     name: 'AgentSutra',
     url: siteUrl,
-    description:
-      'First-hand AI experiments, failures and corrections turned into practical, inspectable Field Notes.',
+    description: siteDescription,
     inLanguage: 'en',
+    publisher: { '@id': publicationId },
+    creator: { '@id': creatorId },
   },
   {
     '@context': 'https://schema.org',
     '@type': 'Organization',
+    '@id': publicationId,
     name: 'AgentSutra',
     url: siteUrl,
+    description: 'AgentSutra is an independent publication created and edited by Pravin Durgani.',
+    founder: { '@id': creatorId },
+    publishingPrinciples: methodUrl,
     sameAs: ['https://github.com/pravindurgani/agentsutra'],
+  },
+  {
+    '@context': 'https://schema.org',
+    '@type': 'Person',
+    '@id': creatorId,
+    name: 'Pravin Durgani',
+    url: methodUrl,
+    publishingPrinciples: methodUrl,
+    sameAs: ['https://github.com/pravindurgani'],
   },
 ];
 const structuredItems = [
@@ -75,13 +111,36 @@ const structuredItems = [
       title="AgentSutra Field Notes"
       href="/rss.xml"
     />
-    <meta property="og:type" content="website" />
+    <meta property="og:type" content={ogType} />
     <meta property="og:site_name" content="AgentSutra" />
     <meta property="og:title" content={title} />
     <meta property="og:description" content={description} />
     <meta property="og:url" content={canonical} />
     {socialImage && <meta property="og:image" content={socialImage} />}
     {socialImage && imageAlt && <meta property="og:image:alt" content={imageAlt} />}
+    {socialImage && <meta property="og:image:width" content={String(imageWidth)} />}
+    {socialImage && <meta property="og:image:height" content={String(imageHeight)} />}
+    {socialImage && <meta property="og:image:type" content="image/png" />}
+    {
+      ogType === 'article' && publishedTime && (
+        <meta property="article:published_time" content={publishedTime} />
+      )
+    }
+    {
+      ogType === 'article' && modifiedTime && (
+        <meta property="article:modified_time" content={modifiedTime} />
+      )
+    }
+    {
+      ogType === 'article' && articleAuthor && (
+        <meta property="article:author" content={articleAuthor} />
+      )
+    }
+    {
+      ogType === 'article' && articleSection && (
+        <meta property="article:section" content={articleSection} />
+      )
+    }
     <meta name="twitter:card" content={socialImage ? 'summary_large_image' : 'summary'} />
     <meta name="twitter:title" content={title} />
     <meta name="twitter:description" content={description} />
@@ -96,14 +155,6 @@ const structuredItems = [
     <slot name="head" />
   </head>
   <body>
-    <!--
-    THESIS: Thread is the reading interface; this field laboratory refuses the generic AI landing-page hero and card stack.
-    OWN-WORLD: Ink-black field, paper-white type, cyan evidence, violet judgement, square rules, folios, ledgers, and code-native Thread nodes.
-    STORY: A reader first understands the practical promise and origin, then follows one lesson from a recognisable problem through evidence, limit and action.
-    FIRST VIEWPORT: A narrow field-status rail meets an oversized editorial claim; a persistent Thread runs through the composition and the primary action lands beside the featured record.
-    FORM: Threaded Field Lab, first-ranked selected direction, seed 0ea21cef.
-    FINISH: production-ready in all states
-    -->
     <a class="skip-link" href="#main">Skip to content</a>
     <SiteHeader currentPath={Astro.url.pathname} />
     <main id="main" class="site-main" tabindex="-1">

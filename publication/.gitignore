@@ -6,6 +6,7 @@
 /.wrangler/
 /playwright-report/
 /test-results/
+/.release/
 # generated types
 .astro/
 

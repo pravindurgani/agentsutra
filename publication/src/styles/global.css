@@ -316,7 +316,7 @@
     text-decoration: none;
   }
 
-  .wordmark__mark {
+  .thread-cursor {
     position: relative;
     display: block;
     width: 1.1rem;
@@ -324,8 +324,8 @@
     border-left: 1px solid var(--cyan);
   }
 
-  .wordmark__mark::before,
-  .wordmark__mark::after {
+  .thread-cursor::before,
+  .thread-cursor::after {
     position: absolute;
     left: -0.28rem;
     width: 0.5rem;
@@ -335,12 +335,12 @@
     content: '';
   }
 
-  .wordmark__mark::before {
+  .thread-cursor::before {
     top: 0;
     color: var(--violet);
   }
 
-  .wordmark__mark::after {
+  .thread-cursor::after {
     bottom: 0;
     color: var(--cyan);
     border-radius: 50%;
@@ -362,7 +362,7 @@
     border-bottom: 1px solid transparent;
     color: var(--ink-muted);
     font-family: var(--font-mono);
-    font-size: 0.76rem;
+    font-size: 0.8125rem;
     font-variation-settings: 'MONO' 1;
     font-weight: 720;
     letter-spacing: 0.045em;

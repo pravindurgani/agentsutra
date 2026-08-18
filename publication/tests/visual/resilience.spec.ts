@@ -1,7 +1,10 @@
 import { expect, test } from '@playwright/test';
 
 test('essential content remains visible in forced colours', async ({ page, browserName }) => {
-  test.skip(browserName !== 'chromium', 'Forced-colours emulation is validated in Chromium');
+  test.skip(
+    browserName !== 'chromium',
+    '[PW-SKIP-005] Forced-colours emulation is validated in Chromium',
+  );
   await page.emulateMedia({ forcedColors: 'active' });
   await page.goto('/');
   await expect(page.locator('main#main')).toBeVisible();

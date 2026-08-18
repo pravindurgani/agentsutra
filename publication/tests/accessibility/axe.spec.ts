@@ -22,7 +22,10 @@ test('the Daylight Proof theme has no serious or critical accessibility violatio
   page,
   browserName,
 }) => {
-  test.skip(browserName !== 'chromium', 'The full light-theme route matrix runs once in Chromium');
+  test.skip(
+    browserName !== 'chromium',
+    '[PW-SKIP-003] The light-theme Axe route matrix runs once in Chromium',
+  );
   await page.emulateMedia({ colorScheme: 'light', reducedMotion: 'reduce' });
 
   for (const route of [...PUBLIC_ROUTES, REPRESENTATIVE_FIELD_NOTE]) {

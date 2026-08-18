@@ -59,11 +59,19 @@ const highRiskReviewSchema = z
     independentReviewer: z
       .object({
         id: z.string().regex(/^RVW-[A-Z0-9][A-Z0-9-]{5,80}$/),
+        kind: z.literal('human', {
+          error: 'Risk D independent review must be completed by a human reviewer.',
+        }),
         displayName: nonEmptyTextSchema
           .max(120)
           .refine((value) => !/^(?:self|author|owner)$/iu.test(value), {
             message: 'An independent reviewer cannot be recorded as self, author, or owner.',
+          })
+          .refine((value) => value.replace(/\s+/gu, ' ').toLowerCase() !== 'pravin durgani', {
+            message:
+              'The accountable author or editor cannot be recorded as an independent reviewer.',
           }),
+        relevantExpertise: sentenceSchema,
         relationship: sentenceSchema,
         attestation: sentenceSchema,
       })

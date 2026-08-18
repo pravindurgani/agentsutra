@@ -212,9 +212,33 @@ The generated Thread SVG uses a 12-unit corner radius on node label bodies as a 
 
 ## Components
 
+### Identity Asset Hierarchy
+
+The approved identity concept has three deliberately different jobs. Do not treat every Thread
+device as a logo:
+
+1. **Primary S / Thread / decision-node mark** — the full brand symbol for avatars, portfolio
+   lockups and major share surfaces. Its approved vector master is not yet present in this
+   repository. Do not redraw it from a screenshot or promote another glyph into its place. Adding
+   the exact source SVG, construction geometry and monochrome variant is a launch blocker for the
+   final identity package.
+2. **Interim micro mark** — `public/favicon.svg` is the only current code-native S path. It may act
+   as a temporary favicon while the approved vector master is unavailable. It is explicitly not the
+   source of truth for the primary symbol; `favicon.ico` must continue to match it until both are
+   regenerated from the approved micro master.
+3. **Thread cursor** — the vertical square-to-circle device in `SiteHeader` is a secondary editorial
+   cue for entry, movement and outcome. It is now isolated as `ThreadCursor.astro`. It may accompany
+   the plain `AgentSutra` wordmark and organise share artwork, but it is not the primary logo.
+
+The default Open Graph proof sheet uses only the plain wordmark, existing Thread cursor and the
+homepage thesis. It deliberately avoids fabricating the missing full symbol. Every approved,
+published or corrected Field Note requires a 1200 × 630 note-specific share image whose filename
+matches its canonical slug and whose alternative text describes the meaningful visible message.
+Drafts may use the default image while their own composition is being reviewed.
+
 ### Header and Navigation
 
-The desktop header is a flat sticky rule; on mobile it returns to document flow. The wordmark's vertical rule, violet square and cyan outcome circle compress the Thread identity. Navigation uses monospaced labels, muted text at rest and a cyan underline plus paper-white text for hover or the current page.
+The desktop header is a flat sticky rule; on mobile it returns to document flow. The Thread cursor's vertical rule, violet square and cyan outcome circle compress the reading progression without impersonating the primary mark. Navigation uses monospaced labels, muted text at rest and a cyan underline plus paper-white text for hover or the current page.
 
 ### Buttons and Links
 

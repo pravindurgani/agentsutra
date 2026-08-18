@@ -147,7 +147,7 @@ export const adaptationSchema = z
       context.addIssue({
         code: 'custom',
         path: ['attribution'],
-        message: `${adaptation.platform} adaptations must preserve the anonymous AgentSutra identity.`,
+        message: `${adaptation.platform} adaptations must preserve the faceless, publication-led AgentSutra identity.`,
       });
     }
     if (adaptation.format !== contract.format) {

@@ -13,7 +13,7 @@ Private-pilot phase. The source is visible in the public AgentSutra repository, 
 - One substantial, independently useful Field Note per week after launch.
 - One canonical, crawlable, accessible page per note.
 - Static platform adaptations derived from the same validated source.
-- Anonymous AgentSutra identity on Instagram and TikTok; pseudonymous, discussion-first participation on Reddit; selective personal attribution on LinkedIn and portfolio surfaces.
+- Faceless, publication-led AgentSutra identity on Instagram and TikTok—not strict anonymity; pseudonymous, discussion-first participation on Reddit; accountable attribution on the canonical site and selective personal attribution on LinkedIn and portfolio surfaces.
 - Every note carries its own evidence boundary, limitations, correction state, and practical transfer.
 - Every note also produces 30-second, 90-second, and 3-minute interview explanations.
 
@@ -54,20 +54,42 @@ npm run dev
 
 ## Quality commands
 
-| Command                  | Purpose                                                          |
-| ------------------------ | ---------------------------------------------------------------- |
-| `npm run check`          | Astro and TypeScript validation                                  |
-| `npm test`               | Content-contract and unit tests                                  |
-| `npm run privacy:scan`   | Reject private paths, topology, credentials, and unsafe fixtures |
-| `npm run build`          | Production build; drafts and synthetic fixtures are excluded     |
-| `npm run build:fixtures` | Local fixture build for test coverage                            |
-| `npm run build:exports`  | Local-only export build                                          |
-| `npm run verify:dist`    | Assert the generated public surface and zero-JS contract         |
-| `npm run test:e2e`       | Cross-browser, responsive, and accessibility checks              |
-| `npm run export:social`  | Generate native static social assets                             |
-| `npm run export:verify`  | Prove native assets match across two clean builds                |
-| `npm run deploy:dry-run` | Validate the Cloudflare artifact without publishing              |
-| `npm run verify`         | Run the core local verification chain                            |
+| Command                         | Purpose                                                          |
+| ------------------------------- | ---------------------------------------------------------------- |
+| `npm run check`                 | Astro and TypeScript validation                                  |
+| `npm test`                      | Content-contract and unit tests                                  |
+| `npm run privacy:scan`          | Reject private paths, topology, credentials, and unsafe fixtures |
+| `npm run build`                 | Production build; drafts and synthetic fixtures are excluded     |
+| `npm run build:fixtures`        | Local fixture build for test coverage                            |
+| `npm run build:exports`         | Local-only export build                                          |
+| `npm run verify:dist`           | Assert the generated public surface and zero-JS contract         |
+| `npm run test:e2e`              | Cross-browser, responsive, and accessibility checks              |
+| `npm run export:social`         | Generate native static social assets                             |
+| `npm run export:verify`         | Prove native assets match across two clean builds                |
+| `npm run verify:public-profile` | Prove public release succeeds only with a real reviewed note     |
+| `npm run release:source`        | Package the clean committed publication source                   |
+| `npm run release:preview`       | Rebuild, validate, and package the pre-launch static preview     |
+| `npm run release:artifacts`     | Produce both release archives without deploying                  |
+| `npm run deploy:dry-run`        | Validate the Cloudflare artifact without publishing              |
+| `npm run verify`                | Run the core local verification chain                            |
+
+The browser matrix and every intentional engine-specific skip are documented in
+[tests/PLAYWRIGHT_COVERAGE.md](tests/PLAYWRIGHT_COVERAGE.md).
+
+## Release archives
+
+Release archives are generated under the ignored `.release/` directory and are named with the
+12-character monorepo commit ID. Each ZIP receives a sibling `.sha256` checksum.
+
+- `release:source` uses `git archive` on `HEAD:publication`. It refuses tracked, staged, or
+  untracked changes anywhere under `publication/`, so it cannot silently package stale `HEAD`.
+  Repository-owned agent workflows remain available to contributors but `.agents/` and `.codex/`
+  are deliberately excluded from the portable source artifact.
+- `release:preview` applies the same clean-tree rule, performs a fresh atomic pre-launch build,
+  validates that build, and packages only the resulting static files. It excludes dependencies,
+  fixture/export builds, test output, local tooling, Git history, `.DS_Store`, and `__MACOSX`.
+
+These commands create local artifacts only. They do not upload, deploy, publish, or change DNS.
 
 ## Content workflow
 
@@ -102,6 +124,12 @@ Use `AgentSutra` in camel case. The visual system uses a restrained violet-to-cy
 - check: verified outcome
 
 The wordmark remains plain `AgentSutra`; the symbol carries the diagrammatic character.
+
+The primary S / Thread / decision-node mark remains approved in concept but its exact vector master
+has not yet been added to the repository. Until it is supplied, the header's square-to-circle device
+is treated as a secondary **Thread cursor**, and `favicon.svg` remains an explicitly interim micro
+mark. Neither should be presented as a replacement primary logo. Default share artwork therefore
+uses the plain wordmark and Thread cursor rather than inventing missing logo geometry.
 
 ## Themes
 

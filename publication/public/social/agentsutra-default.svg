@@ -1,0 +1,47 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="630" viewBox="0 0 1200 630" role="img" aria-labelledby="title description">
+  <title id="title">AgentSutra</title>
+  <desc id="description">AgentSutra default share artwork with a vertical Thread and the words Push the model, inspect the failure, keep the lesson.</desc>
+  <defs>
+    <style>
+      @font-face {
+        font-family: 'Recursive AgentSutra';
+        src: url('/fonts/recursive-v1.085-latin-basic.woff2') format('woff2');
+        font-style: oblique 0deg 15deg;
+        font-weight: 300 1000;
+      }
+      .display { font-family: 'Recursive AgentSutra', system-ui, sans-serif; font-variation-settings: 'CASL' .24, 'MONO' 0; }
+      .mono { font-family: 'Recursive AgentSutra', ui-monospace, monospace; font-variation-settings: 'MONO' 1, 'CASL' 0; }
+    </style>
+    <linearGradient id="thread" x1="1080" y1="76" x2="1080" y2="554" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#aa8eff" />
+      <stop offset=".5" stop-color="#8eafff" />
+      <stop offset="1" stop-color="#64e8f3" />
+    </linearGradient>
+  </defs>
+  <rect width="1200" height="630" fill="#07090e" />
+  <path d="M0 1H1200M0 629H1200" stroke="#323a49" />
+
+  <g transform="translate(90 66)">
+    <path d="M7 0V42" stroke="#64e8f3" />
+    <rect x="2.5" y="0.5" width="9" height="9" fill="#07090e" stroke="#aa8eff" />
+    <circle cx="7" cy="42" r="4.5" fill="#07090e" stroke="#64e8f3" />
+    <text class="display" x="34" y="34" fill="#f4f5f2" font-size="29" font-weight="780" letter-spacing="-0.8">AgentSutra</text>
+  </g>
+
+  <text class="mono" x="90" y="178" fill="#aa8eff" font-size="15" font-weight="760" letter-spacing="1.2">PUBLIC FIELD LAB / FIELD NOTES</text>
+  <text class="display" x="90" y="263" fill="#f4f5f2" font-size="64" font-weight="780" letter-spacing="-2.2">
+    <tspan x="90" dy="0">Push the model.</tspan>
+    <tspan x="90" dy="68">Inspect the failure.</tspan>
+    <tspan x="90" dy="68">Keep the lesson.</tspan>
+  </text>
+  <text class="display" x="90" y="521" fill="#b7bdc8" font-size="23" font-weight="500">
+    First-hand AI experiments, with evidence, limits and one practical action.
+  </text>
+  <text class="mono" x="90" y="577" fill="#64e8f3" font-size="15" font-weight="720" letter-spacing="1">AGENTSUTRA.DEV</text>
+
+  <path d="M1080 76V554" stroke="#323a49" stroke-width="2" />
+  <path d="M1080 76V554" stroke="url(#thread)" />
+  <rect x="1072" y="68" width="16" height="16" fill="#07090e" stroke="#aa8eff" stroke-width="2" />
+  <path d="m1080 299 10 10-10 10-10-10Z" fill="#07090e" stroke="#8eafff" stroke-width="2" />
+  <circle cx="1080" cy="554" r="8" fill="#07090e" stroke="#64e8f3" stroke-width="2" />
+</svg>

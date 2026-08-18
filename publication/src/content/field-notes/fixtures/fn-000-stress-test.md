@@ -6,6 +6,11 @@ lifecycle: draft
 fixture: true
 title: 'Synthetic stress fixture: an intentionally overlong Field Note title that tests wrapping, narrow screens, metadata density, punctuation — and resilient editorial layouts'
 description: 'A deliberately fictional, non-publishable record used only to prove that the AgentSutra content contract survives long copy, every audience layer, and linked artifacts.'
+shareImage:
+  src: /social/agentsutra-default.png
+  alt: 'AgentSutra default share artwork with a vertical Thread and the words Push the model, inspect the failure, keep the lesson.'
+  width: 1200
+  height: 630
 centralClaim: 'Synthetic fixture claim: a deliberately fictional record can test the complete AgentSutra publishing contract without asserting anything about a real system.'
 answer: 'This draft exists only as engineering test data, and every statement on it is explicitly synthetic rather than advice, evidence, or a public technical claim.'
 arc: Publishing foundations

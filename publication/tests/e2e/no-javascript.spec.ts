@@ -2,7 +2,10 @@ import { expect, test } from '@playwright/test';
 import { REPRESENTATIVE_FIELD_NOTE } from '../helpers/routes';
 
 test('the learning surface remains useful without JavaScript', async ({ page }, testInfo) => {
-  test.skip(testInfo.project.name !== 'chromium-no-js', 'No-JavaScript contract project only');
+  test.skip(
+    testInfo.project.name !== 'chromium-no-js',
+    '[PW-SKIP-004] The no-JavaScript contract runs only in its isolated Chromium project',
+  );
   await page.setViewportSize({ width: 320, height: 800 });
   await page.emulateMedia({ colorScheme: 'light', reducedMotion: 'reduce' });
 

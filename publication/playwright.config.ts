@@ -5,6 +5,8 @@ const port = 4321;
 const baseURL = `http://${host}:${port}`;
 
 export default defineConfig({
+  // Every intentional test.skip and project-level omission is documented in
+  // tests/PLAYWRIGHT_COVERAGE.md.
   testDir: './tests',
   testMatch: ['**/e2e/**/*.spec.ts', '**/accessibility/**/*.spec.ts', '**/visual/**/*.spec.ts'],
   fullyParallel: true,

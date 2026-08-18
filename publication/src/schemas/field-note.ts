@@ -15,6 +15,20 @@ import {
   threadDiagramIdSchema,
 } from './shared';
 
+export const shareImageSchema = z
+  .object({
+    src: z
+      .string()
+      .regex(
+        /^\/social\/(?:agentsutra-default|field-notes\/[a-z0-9]+(?:-[a-z0-9]+)*)\.png$/,
+        'Share images must use the approved default image or a slug-specific Field Note path.',
+      ),
+    alt: nonEmptyTextSchema.min(30).max(240),
+    width: z.literal(1200),
+    height: z.literal(630),
+  })
+  .strict();
+
 export const fieldNoteSchema = z
   .object({
     schemaVersion: schemaVersionSchema,
@@ -24,6 +38,7 @@ export const fieldNoteSchema = z
     fixture: z.boolean().default(false),
     title: nonEmptyTextSchema.max(180),
     description: nonEmptyTextSchema.min(40).max(320),
+    shareImage: shareImageSchema.optional(),
     centralClaim: sentenceSchema,
     answer: sentenceSchema,
     arc: nonEmptyTextSchema.max(80),
@@ -97,6 +112,26 @@ export const fieldNoteSchema = z
         message: `${note.lifecycle} Field Notes require a review date.`,
       });
     }
+    const expectedShareImage = `/social/field-notes/${note.slug}.png`;
+    if (note.shareImage && note.shareImage.src !== '/social/agentsutra-default.png') {
+      if (note.shareImage.src !== expectedShareImage) {
+        context.addIssue({
+          code: 'custom',
+          path: ['shareImage', 'src'],
+          message: `The Field Note share image must match its slug: ${expectedShareImage}.`,
+        });
+      }
+    }
+    if (
+      gatedLifecycleStates.has(note.lifecycle) &&
+      (!note.shareImage || note.shareImage.src === '/social/agentsutra-default.png')
+    ) {
+      context.addIssue({
+        code: 'custom',
+        path: ['shareImage'],
+        message: `${note.lifecycle} Field Notes require a note-specific 1200 × 630 share image.`,
+      });
+    }
     if (note.dates.updated < note.dates.created) {
       context.addIssue({
         code: 'custom',
@@ -140,3 +175,4 @@ export const fieldNoteSchema = z
   });
 
 export type FieldNote = z.infer<typeof fieldNoteSchema>;
+export type ShareImage = z.infer<typeof shareImageSchema>;

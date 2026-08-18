@@ -19,13 +19,35 @@ const root = resolve(import.meta.dirname, '..');
  */
 function run(command, args, options = {}) {
   return new Promise((resolvePromise, reject) => {
-    const child = spawn(command, args, { stdio: 'inherit', ...options });
+    const child = spawn(command, args, { stdio: ['inherit', 'pipe', 'pipe'], ...options });
+    let stdout = '';
+    let stderr = '';
+    const stdoutStream = child.stdout;
+    const stderrStream = child.stderr;
+    if (!stdoutStream || !stderrStream) {
+      child.kill();
+      reject(new Error(`Unable to capture output from ${command}.`));
+      return;
+    }
+    stdoutStream.setEncoding('utf8');
+    stderrStream.setEncoding('utf8');
+    stdoutStream.on('data', (chunk) => {
+      stdout += chunk;
+      process.stdout.write(chunk);
+    });
+    stderrStream.on('data', (chunk) => {
+      stderr += chunk;
+      process.stderr.write(chunk);
+    });
     child.once('error', reject);
     child.once('exit', (code, signal) => {
       if (code === 0) resolvePromise();
       else
         reject(
-          new Error(`${command} exited with ${signal ? `signal ${signal}` : `code ${code}`}.`),
+          Object.assign(
+            new Error(`${command} exited with ${signal ? `signal ${signal}` : `code ${code}`}.`),
+            { stdout, stderr },
+          ),
         );
     });
   });

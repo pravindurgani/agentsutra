@@ -11,6 +11,7 @@ import BaseLayout from '../../layouts/BaseLayout.astro';
 import { getVisibleFieldNotes, loadPublicationGraph } from '../../lib/content';
 import { getPublicEvidencePresentation, publicEvidenceMeanings } from '../../lib/public-evidence';
 import { selectVisibleRelatedNotes } from '../../lib/related-notes';
+import { defaultShareImage } from '../../lib/share-images';
 
 export async function getStaticPaths() {
   const includeFixtures = process.env.INCLUDE_FIXTURES === '1';
@@ -63,17 +64,45 @@ const sources: SourceItem[] = evidence.evidence.map((item) => {
 });
 
 const canonicalPath = `/field-notes/${note.data.slug}/`;
+const origin = Astro.site ?? new URL('https://agentsutra.dev');
+const canonicalUrl = new URL(canonicalPath, origin).toString();
+const publicationId = new URL('/#publication', origin).toString();
+const creatorId = new URL('/#creator', origin).toString();
+const creatorUrl = new URL('/method/#editor', origin).toString();
+const websiteId = new URL('/#website', origin).toString();
+const shareImage = note.data.shareImage ?? defaultShareImage;
+const shareImageUrl = new URL(shareImage.src, origin).toString();
+const updatedLabel = new Intl.DateTimeFormat('en-GB', {
+  day: 'numeric',
+  month: 'short',
+  year: 'numeric',
+  timeZone: 'UTC',
+}).format(new Date(note.data.dates.updated));
 const evidencePresentation = getPublicEvidencePresentation(evidence);
 const structuredData = {
   '@context': 'https://schema.org',
   '@type': 'Article',
+  '@id': `${canonicalUrl}#article`,
   headline: note.data.title,
   description: note.data.description,
   datePublished: note.data.dates.published,
   dateModified: note.data.dates.updated,
-  mainEntityOfPage: `https://agentsutra.dev${canonicalPath}`,
-  publisher: { '@type': 'Organization', name: 'AgentSutra', url: 'https://agentsutra.dev/' },
-  author: { '@type': 'Organization', name: 'AgentSutra', url: 'https://agentsutra.dev/' },
+  inLanguage: 'en',
+  isAccessibleForFree: true,
+  articleSection: note.data.arc,
+  mainEntityOfPage: { '@type': 'WebPage', '@id': canonicalUrl },
+  isPartOf: { '@id': websiteId },
+  publisher: { '@id': publicationId },
+  author: { '@id': creatorId },
+  creator: { '@id': creatorId },
+  image: {
+    '@type': 'ImageObject',
+    url: shareImageUrl,
+    contentUrl: shareImageUrl,
+    width: shareImage.width,
+    height: shareImage.height,
+    caption: shareImage.alt,
+  },
 };
 ---
 
@@ -82,6 +111,15 @@ const structuredData = {
   description={note.data.description}
   canonicalPath={canonicalPath}
   noindex={process.env.PUBLIC_LAUNCH !== '1' || note.data.fixture}
+  image={shareImage.src}
+  imageAlt={shareImage.alt}
+  imageWidth={shareImage.width}
+  imageHeight={shareImage.height}
+  ogType="article"
+  publishedTime={note.data.dates.published}
+  modifiedTime={note.data.dates.updated}
+  articleAuthor={creatorUrl}
+  articleSection={note.data.arc}
   structuredData={structuredData}
 >
   <article class="field-note">
@@ -99,6 +137,14 @@ const structuredData = {
 
     <div class="shell page-section">
       <div class="prose field-note__opening">
+        <p class="field-note__byline">
+          <small>
+            Created and edited by <a href="/method/#editor" rel="author">Pravin Durgani</a>
+            <span aria-hidden="true"> · </span>
+            Updated <time datetime={note.data.dates.updated}>{updatedLabel}</time>
+          </small>
+        </p>
+        <p>{note.data.description}</p>
         <h2>The problem</h2>
         <p>{note.data.beats.problem}</p>
         <h2>What you might expect</h2>

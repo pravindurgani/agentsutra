@@ -50,6 +50,9 @@ jobs:
       - name: Validate source, content, privacy, and pre-launch output
         run: npm run verify
 
+      - name: Prove the public release profile fails closed
+        run: npm run verify:public-profile
+
       - name: Install pinned Playwright browsers
         run: npx --no-install playwright install --with-deps chromium firefox webkit
 
@@ -77,3 +80,6 @@ jobs:
         env:
           WRANGLER_LOG_PATH: /tmp/agentsutra-wrangler.log
         run: npm run deploy:dry-run
+
+      - name: Rehearse clean source and validated preview archives
+        run: npm run release:artifacts

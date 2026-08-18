@@ -1,4 +1,6 @@
 ---
+import ThreadCursor from './ThreadCursor.astro';
+
 interface Props {
   currentPath: string;
 }
@@ -16,7 +18,7 @@ const isCurrent = (href: string) =>
 <header class="site-header">
   <div class="site-header__inner shell">
     <a class="wordmark" href="/" aria-label="AgentSutra home">
-      <span aria-hidden="true" class="wordmark__mark"></span>
+      <ThreadCursor />
       <span>AgentSutra</span>
     </a>
     <nav class="site-nav" aria-label="Primary">

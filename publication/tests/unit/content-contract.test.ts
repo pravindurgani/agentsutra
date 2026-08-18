@@ -15,6 +15,7 @@ import {
   validatePublicationGraph,
   type PublicationGraphInput,
 } from '../../src/lib/publication-graph';
+import { defaultShareImage } from '../../src/lib/share-images';
 
 const projectRoot = fileURLToPath(new URL('../../', import.meta.url));
 
@@ -38,6 +39,7 @@ describe('AgentSutra content contracts', () => {
       slug: 'fn-000-stress-test',
       lifecycle: 'draft',
       fixture: true,
+      shareImage: defaultShareImage,
     });
     expect(pack?.evidence.every((item) => item.source.access === 'synthetic')).toBe(true);
   });
@@ -75,6 +77,42 @@ describe('AgentSutra content contracts', () => {
     if (!result.success) {
       expect(result.error.issues.map((issue) => issue.message).join(' ')).toContain(
         'approved Field Notes require a review date.',
+      );
+    }
+  });
+
+  it('requires a note-specific 1200 × 630 share image before approval', async () => {
+    const graph = await fixtureGraph();
+    const note = graph.fieldNotes.at(0);
+    if (!note) throw new Error('FN-000 fixture is missing.');
+    const invalid = structuredClone(note);
+    invalid.lifecycle = 'approved';
+    invalid.dates.reviewed = invalid.dates.updated;
+
+    const result = fieldNoteSchema.safeParse(invalid);
+    expect(result.success).toBe(false);
+    if (!result.success) {
+      expect(result.error.issues.map((issue) => issue.message).join(' ')).toContain(
+        'approved Field Notes require a note-specific 1200 × 630 share image.',
+      );
+    }
+  });
+
+  it('rejects a Field Note share image whose filename does not match its slug', async () => {
+    const graph = await fixtureGraph();
+    const note = graph.fieldNotes.at(0);
+    if (!note) throw new Error('FN-000 fixture is missing.');
+    const invalid = structuredClone(note);
+    invalid.shareImage = {
+      ...defaultShareImage,
+      src: '/social/field-notes/a-different-note.png',
+    };
+
+    const result = fieldNoteSchema.safeParse(invalid);
+    expect(result.success).toBe(false);
+    if (!result.success) {
+      expect(result.error.issues.map((issue) => issue.message).join(' ')).toContain(
+        'The Field Note share image must match its slug: /social/field-notes/fn-000-stress-test.png.',
       );
     }
   });
@@ -277,7 +315,10 @@ describe('AgentSutra content contracts', () => {
       residualRisk: 'This synthetic metadata does not represent a real security assessment.',
       independentReviewer: {
         id: 'RVW-SYNTHETIC-REVIEWER',
+        kind: 'human',
         displayName: 'Self',
+        relevantExpertise:
+          'This fictional expertise statement exists only to exercise schema rejection.',
         relationship: 'This fictional relationship exists only to exercise schema rejection.',
         attestation:
           'This fictional attestation does not approve or validate a real security claim.',
@@ -338,7 +379,10 @@ describe('AgentSutra content contracts', () => {
       residualRisk: 'This synthetic metadata does not represent a real security assessment.',
       independentReviewer: {
         id: 'RVW-SYNTHETIC-REVIEWER',
+        kind: 'human',
         displayName: 'Synthetic reviewer',
+        relevantExpertise:
+          'This fictional expertise statement exists only to exercise schema rejection.',
         relationship: 'This fictional relationship exists only to exercise schema rejection.',
         attestation:
           'This fictional attestation does not approve or validate a real security claim.',
@@ -352,6 +396,70 @@ describe('AgentSutra content contracts', () => {
     if (!result.success) {
       expect(result.error.issues.map((issue) => issue.message).join(' ')).toContain(
         'reserved for Risk D packs',
+      );
+    }
+  });
+
+  it('rejects an AI agent as the independent reviewer for a Risk D record', async () => {
+    const graph = await fixtureGraph();
+    const pack = graph.evidencePacks.at(0);
+    if (!pack) throw new Error('EP-FN-000 fixture is missing.');
+    const invalid = structuredClone(pack) as unknown as Record<string, unknown>;
+    invalid.highRiskReview = {
+      threatModel: 'A synthetic threat statement exists only to exercise the rejection path.',
+      executableTestEvidenceId: 'EV-FN-000-01',
+      residualRisk: 'This synthetic metadata does not represent a real security assessment.',
+      independentReviewer: {
+        id: 'RVW-SYNTHETIC-REVIEWER',
+        kind: 'ai-agent',
+        displayName: 'Synthetic review agent',
+        relevantExpertise:
+          'This fictional expertise statement exists only to exercise schema rejection.',
+        relationship: 'This fictional relationship exists only to exercise schema rejection.',
+        attestation:
+          'This fictional attestation does not approve or validate a real security claim.',
+      },
+      reviewedAt: '2026-08-17',
+      status: 'approved',
+    };
+
+    const result = evidencePackSchema.safeParse(invalid);
+    expect(result.success).toBe(false);
+    if (!result.success) {
+      expect(result.error.issues.map((issue) => issue.message).join(' ')).toContain(
+        'Risk D independent review must be completed by a human reviewer.',
+      );
+    }
+  });
+
+  it('rejects the accountable editor as an independent Risk D reviewer', async () => {
+    const graph = await fixtureGraph();
+    const pack = graph.evidencePacks.at(0);
+    if (!pack) throw new Error('EP-FN-000 fixture is missing.');
+    const invalid = structuredClone(pack) as EvidencePack;
+    invalid.highRiskReview = {
+      threatModel: 'A synthetic threat statement exists only to exercise the rejection path.',
+      executableTestEvidenceId: 'EV-FN-000-01',
+      residualRisk: 'This synthetic metadata does not represent a real security assessment.',
+      independentReviewer: {
+        id: 'RVW-SYNTHETIC-REVIEWER',
+        kind: 'human',
+        displayName: '  PRAVIN   DURGANI  ',
+        relevantExpertise:
+          'This fictional expertise statement exists only to exercise schema rejection.',
+        relationship: 'This fictional relationship exists only to exercise schema rejection.',
+        attestation:
+          'This fictional attestation does not approve or validate a real security claim.',
+      },
+      reviewedAt: '2026-08-17',
+      status: 'approved',
+    };
+
+    const result = evidencePackSchema.safeParse(invalid);
+    expect(result.success).toBe(false);
+    if (!result.success) {
+      expect(result.error.issues.map((issue) => issue.message).join(' ')).toContain(
+        'The accountable author or editor cannot be recorded as an independent reviewer.',
       );
     }
   });
@@ -377,7 +485,7 @@ describe('AgentSutra content contracts', () => {
     expect(() => validatePublicationGraph(input)).toThrow(/must derive public evidence state/);
   });
 
-  it('requires LinkedIn attribution and reflection without exposing it on anonymous platforms', async () => {
+  it('requires LinkedIn attribution without exposing it on faceless publication-led platforms', async () => {
     const graph = await fixtureGraph();
     const linkedIn = graph.adaptations.find((adaptation) => adaptation.platform === 'linkedin');
     const instagram = graph.adaptations.find((adaptation) => adaptation.platform === 'instagram');
