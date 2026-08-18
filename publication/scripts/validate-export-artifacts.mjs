@@ -7,6 +7,7 @@ import { promisify } from 'node:util';
 import sharp from 'sharp';
 
 import { scanPrivateMaterial } from './lib/privacy-rules.mjs';
+import { containsPublicationTruth } from './lib/publication-truth.mjs';
 
 const executeFile = promisify(execFile);
 const root = resolve(import.meta.dirname, '..');
@@ -16,11 +17,6 @@ const manifestPath = resolve(outputDirectory, 'manifest.json');
 /** @param {Buffer|string} value */
 function sha256(value) {
   return createHash('sha256').update(value).digest('hex');
-}
-
-/** @param {string} value */
-function normalizedText(value) {
-  return value.normalize('NFKC').replace(/\s+/gu, ' ').trim();
 }
 
 /** @param {string} label @param {string} text */
@@ -35,10 +31,8 @@ function assertPrivacy(label, text) {
 
 /** @param {Record<string, unknown>} entry @param {string} text */
 function assertPublicationTruth(entry, text) {
-  const normalized = normalizedText(text);
   for (const key of ['centralClaim', 'evidenceStatus', 'evidenceBoundary', 'correctionStatus']) {
-    const expected = normalizedText(String(entry[key] ?? ''));
-    if (!expected || !normalized.includes(expected)) {
+    if (!containsPublicationTruth(text, entry[key])) {
       throw new Error(`${entry.file} does not preserve ${key} in selectable text.`);
     }
   }

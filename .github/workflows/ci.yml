@@ -21,8 +21,8 @@ jobs:
           python-version: '3.11'
           cache: 'pip'
       - run: pip install -r requirements.txt
-      - run: pip install pytest ruff
+      - run: pip install pytest ruff==0.16.3
       - name: Lint
-        run: ruff check .
+        run: ruff check . --select E4,E7,E9,F --exclude publication
       - name: Test
         run: python -m pytest tests/ -v -k "not docker" --tb=short

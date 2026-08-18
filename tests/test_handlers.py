@@ -3,7 +3,6 @@ from __future__ import annotations
 
 import sys
 import os
-import asyncio
 
 # Ensure project root is importable
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), ".."))
@@ -37,6 +36,13 @@ def _mock_context(user_data=None):
     context.user_data = user_data if user_data is not None else {}
     context.bot = AsyncMock()
     return context
+
+
+def _mock_future(*, done=False):
+    """Create the minimal future-like object used by the resource guard."""
+    future = MagicMock()
+    future.done.return_value = done
+    return future
 
 
 # ── Auth decorator ───────────────────────────────────────────────
@@ -135,7 +141,7 @@ class TestCheckResources:
         """At MAX_CONCURRENT_TASKS active futures — returns rejection."""
         futures = {}
         for i in range(config.MAX_CONCURRENT_TASKS):
-            f = asyncio.Future()
+            f = _mock_future()
             futures[f"task_{i}"] = f  # Not done — still active
 
         result = _check_resources(futures)
@@ -157,11 +163,10 @@ class TestCheckResources:
         futures = {}
         # 2 done futures
         for i in range(2):
-            f = asyncio.Future()
-            f.set_result(None)
+            f = _mock_future(done=True)
             futures[f"done_{i}"] = f
         # 1 active future
-        futures["active_1"] = asyncio.Future()
+        futures["active_1"] = _mock_future()
 
         mem_mock = MagicMock()
         mem_mock.percent = 50.0
@@ -177,7 +182,7 @@ class TestCheckResources:
         """All active after prune — still rejects."""
         futures = {}
         for i in range(config.MAX_CONCURRENT_TASKS):
-            futures[f"active_{i}"] = asyncio.Future()  # Not done
+            futures[f"active_{i}"] = _mock_future()
 
         result = _check_resources(futures)
         assert result is not None
