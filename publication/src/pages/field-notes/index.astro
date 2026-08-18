@@ -3,6 +3,7 @@ import BaseLayout from '../../layouts/BaseLayout.astro';
 import { getVisibleFieldNotes } from '../../lib/content';
 
 const notes = await getVisibleFieldNotes();
+const publicLaunch = process.env.PUBLIC_LAUNCH === '1';
 ---
 
 <BaseLayout
@@ -44,7 +45,9 @@ const notes = await getVisibleFieldNotes();
           <div class="pilot-empty">
             <strong>0 public Field Notes</strong>
             <p>The first three Field Notes are being tested privately before launch.</p>
-            <a href="/#experiment-fn-000">Inspect the explicitly synthetic FN-000 specimen</a>
+            {!publicLaunch && (
+              <a href="/#experiment-fn-000">Inspect the explicitly synthetic FN-000 specimen</a>
+            )}
           </div>
         )
       }

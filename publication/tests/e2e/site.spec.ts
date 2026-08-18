@@ -25,6 +25,15 @@ test.describe('canonical static experience', () => {
     expect(runtimeRequests, 'ordinary pages must not load third-party runtime assets').toEqual([]);
   });
 
+  test('labels and links the pre-launch specimen as synthetic', async ({ page }) => {
+    await page.goto('/');
+    const action = page.getByRole('link', { name: 'Inspect FN-000' });
+    await expect(action).toHaveAttribute('href', '#experiment-fn-000');
+    await expect(page.locator('#experiment-fn-000')).toBeVisible();
+    await expect(page.getByText('Synthetic specimen', { exact: true })).toBeVisible();
+    await expect(page.getByText(/FN-000 is deliberately fictional/)).toBeVisible();
+  });
+
   test('supports keyboard skip navigation', async ({ page, browserName }) => {
     await page.goto('/');
     if (browserName === 'webkit') {

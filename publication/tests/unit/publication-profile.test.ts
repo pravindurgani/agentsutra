@@ -22,7 +22,11 @@ afterEach(async () => {
 
 describe('publication build profiles', () => {
   it('generates mutually exclusive crawl and header policy', () => {
-    expect(publicationProfiles.prelaunch.robots).toContain('Disallow: /');
+    expect(publicationProfiles.prelaunch.robots).toContain('Allow: /');
+    expect(publicationProfiles.prelaunch.robots).not.toContain('Disallow: /');
+    expect(publicationProfiles.prelaunch.robots).toContain(
+      'Sitemap: https://agentsutra.dev/sitemap-index.xml',
+    );
     expect(publicationProfiles.public.robots).toContain('Allow: /');
     expect(publicationProfiles.public.robots).toContain(
       'Sitemap: https://agentsutra.dev/sitemap-index.xml',

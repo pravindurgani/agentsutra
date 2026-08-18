@@ -7,7 +7,9 @@ export const publicationProfiles = {
       EXPORT_MODE: '0',
     },
     robots: `User-agent: *
-Disallow: /
+Allow: /
+
+Sitemap: https://agentsutra.dev/sitemap-index.xml
 `,
   },
   public: {

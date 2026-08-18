@@ -3,6 +3,7 @@ import { extname, relative, resolve } from 'node:path';
 import process from 'node:process';
 import { readUtf8, walkFiles } from './lib/files.mjs';
 import { assertPublicationProfile, publicationProfiles } from './lib/publication-profiles.mjs';
+import { containsPublicOnlyMarker, linksBuiltFieldNote } from './lib/release-artifact.mjs';
 
 const root = resolve(import.meta.dirname, '..');
 /** @param {string} name */
@@ -50,6 +51,12 @@ const publicFieldNoteFiles = htmlFiles.filter((path) =>
     relative(dist, path).replaceAll('\\', '/'),
   ),
 );
+const publicFieldNoteRoutes = publicFieldNoteFiles.map(
+  (path) =>
+    `/${relative(dist, path)
+      .replaceAll('\\', '/')
+      .replace(/index\.html$/u, '')}`,
+);
 if (profile === 'public' && publicFieldNoteFiles.length === 0) {
   fail('public release requires at least one validated, published Field Note route');
 }
@@ -71,6 +78,20 @@ for (const path of htmlFiles) {
   }
   if (profile === 'public' && relativePath === '404.html' && !declaresNoIndex) {
     fail('404.html must remain noindex in the public profile');
+  }
+  if (profile === 'public' && containsPublicOnlyMarker(html)) {
+    fail(`${relativePath}: public HTML contains a reserved pre-launch or synthetic marker`);
+  }
+  if (profile === 'public' && relativePath === 'index.html' && />Private pilot</u.test(html)) {
+    fail('public homepage must not present itself as a private pilot');
+  }
+  if (
+    profile === 'public' &&
+    relativePath === 'index.html' &&
+    publicFieldNoteRoutes.length > 0 &&
+    !linksBuiltFieldNote(html, publicFieldNoteRoutes)
+  ) {
+    fail('public homepage must link to at least one built, reviewed Field Note route');
   }
   if (/<style\b|\sstyle=["']/iu.test(html)) {
     fail(`${relativePath}: inline CSS violates the static Content Security Policy`);
@@ -124,6 +145,12 @@ try {
   if (robots !== publicationProfiles[profile].robots) {
     fail(`${profile} robots.txt does not match the generated publication profile`);
   }
+  if (!robots.includes('Allow: /') || robots.includes('Disallow: /')) {
+    fail(`${profile} robots.txt must allow crawling so page and header indexing policy is visible`);
+  }
+  if (!robots.includes('Sitemap: https://agentsutra.dev/sitemap-index.xml')) {
+    fail(`${profile} robots.txt must declare the canonical sitemap`);
+  }
 } catch {
   // Missing-file failure is reported above.
 }
@@ -133,9 +160,10 @@ try {
   for (const header of ['Content-Security-Policy:', 'X-Content-Type-Options:']) {
     if (!headers.includes(header)) fail(`_headers is missing ${header}`);
   }
-  const hasRobotsHeader = headers.includes('X-Robots-Tag:');
-  if (profile === 'prelaunch' && !hasRobotsHeader) {
-    fail('prelaunch _headers must include X-Robots-Tag');
+  const hasRobotsHeader = /^\s*X-Robots-Tag:/imu.test(headers);
+  const hasNoIndexRobotsHeader = /^\s*X-Robots-Tag:[^\r\n]*\bnoindex\b/imu.test(headers);
+  if (profile === 'prelaunch' && !hasNoIndexRobotsHeader) {
+    fail('prelaunch _headers must include an X-Robots-Tag value containing noindex');
   }
   if (profile === 'public' && hasRobotsHeader) {
     fail('public _headers must not include a site-wide X-Robots-Tag');
