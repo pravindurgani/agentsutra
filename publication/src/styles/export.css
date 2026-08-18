@@ -1,6 +1,27 @@
 @layer export {
   .social-export-page,
   .document-export-page {
+    color-scheme: dark;
+    --ink: #f4f5f2;
+    --ink-muted: #b7bdc8;
+    --ink-faint: #8d95a3;
+    --canvas: #07090e;
+    --surface: #0d1119;
+    --surface-raised: #141a25;
+    --line: #323a49;
+    --line-strong: #687387;
+    --field-rule: rgb(244 245 242 / 0.2);
+    --violet: #aa8eff;
+    --violet-field: #211c3f;
+    --periwinkle: #8eafff;
+    --cyan: #64e8f3;
+    --cyan-field: #092c32;
+    --mint: #8de8c3;
+    --mint-field: #102a25;
+    --amber: #f4c979;
+    --amber-field: #302714;
+    --rose: #ff9fa8;
+    --rose-field: #361b25;
     margin: 0;
     color: #f6f3ff;
     background: #050507;

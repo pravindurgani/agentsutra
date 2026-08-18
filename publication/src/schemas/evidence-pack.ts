@@ -35,6 +35,7 @@ const evidenceItemSchema = z
     supports: z.array(z.union([z.literal('central'), z.string().regex(/^SC-[1-5]$/)])).min(1),
     verification: z.enum(['unverified', 'historical', 'reproduced', 'verified']),
     observedAt: isoDateSchema,
+    finding: sentenceSchema,
     method: sentenceSchema,
     limitation: sentenceSchema,
   })

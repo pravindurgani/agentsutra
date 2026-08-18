@@ -13,18 +13,19 @@ const publicLaunch = process.env.PUBLIC_LAUNCH === '1';
 >
   <header class="page-intro">
     <div class="page-intro__grid shell">
-      <p class="page-intro__context">Canonical collection</p>
+      <p class="page-intro__context">Lesson archive</p>
       <div>
         <h1>Field Notes</h1>
         <p class="page-intro__lead">
-          One problem, one mechanism, one evidence boundary and one action worth remembering.
+          Each note begins with a practical AI problem, explains the mechanism, shows what supports
+          the claim, names the limit, and ends with one action.
         </p>
       </div>
     </div>
   </header>
   <section class="page-section">
     <div class="section-grid shell">
-      <h2>Publication register</h2>
+      <h2>All reviewed Field Notes</h2>
       {
         notes.length > 0 ? (
           <div class="note-ledger">
@@ -42,12 +43,13 @@ const publicLaunch = process.env.PUBLIC_LAUNCH === '1';
             ))}
           </div>
         ) : (
-          <div class="pilot-empty">
-            <strong>0 public Field Notes</strong>
-            <p>The first three Field Notes are being tested privately before launch.</p>
-            {!publicLaunch && (
-              <a href="/#experiment-fn-000">Inspect the explicitly synthetic FN-000 specimen</a>
-            )}
+          <div class="pilot-empty" data-empty-state="field-notes">
+            <strong>No public Field Notes yet</strong>
+            <p>
+              Three pilot lessons must be completed and reader-tested before launch. They will
+              appear here only after comprehension, evidence, privacy and accessibility review.
+            </p>
+            {!publicLaunch && <a href="/method/">See the review method</a>}
           </div>
         )
       }

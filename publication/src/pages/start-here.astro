@@ -20,17 +20,37 @@ for (const note of notes) {
     <div class="page-intro__grid shell">
       <p class="page-intro__context">Learning map</p>
       <div>
-        <h1>Start anywhere. Follow one Thread as far as you need.</h1>
+        <h1>Choose what you need. Stop when you have it.</h1>
         <p class="page-intro__lead">
-          Every Field Note stands alone. Learning arcs connect related ideas when you want a deeper
-          path—not a rigid course you must finish in order.
+          Every Field Note has a complete practical route and an open technical record. You do not
+          need to read the whole archive—or understand an agent system—to use one lesson.
         </p>
       </div>
     </div>
   </header>
   <section class="page-section">
     <div class="section-grid shell">
-      <h2>Choose your route</h2>
+      <h2>Three depths, one lesson</h2>
+      <dl class="reader-paths">
+        <div>
+          <dt>Use it</dt><dd>
+            Read the situation, explanation, limit and action. That is a complete lesson.
+          </dd>
+        </div>
+        <div>
+          <dt>Understand it</dt><dd>
+            Add the visual Thread and the plain-language evidence summary.
+          </dd>
+        </div>
+        <div>
+          <dt>Audit it</dt><dd>Inspect conditions, sources, versions and corrections.</dd>
+        </div>
+      </dl>
+    </div>
+  </section>
+  <section class="page-section">
+    <div class="section-grid shell">
+      <h2>Learning map</h2>
       {
         arcs.size > 0 ? (
           <div class="route-ledger">
@@ -51,37 +71,16 @@ for (const note of notes) {
             ))}
           </div>
         ) : (
-          <div class="pilot-empty">
-            <strong>Private pilot</strong>
-            <p>The learning map will open with the first reviewed Field Note.</p>
+          <div class="pilot-empty" data-empty-state="start-here">
+            <strong>No public lessons yet</strong>
+            <p>
+              Three pilot lessons must be completed and reader-tested before launch. This page
+              becomes the learning map after the first reviewed release.
+            </p>
+            <a href="/method/">See how a lesson is reviewed</a>
           </div>
         )
       }
-    </div>
-  </section>
-  <section class="page-section">
-    <div class="section-grid shell">
-      <h2>Three ways to read</h2>
-      <dl class="reader-paths">
-        <div>
-          <dt>Curious user</dt><dd>
-            Read the problem, Thread, boundary and “use this today” action. That is a complete
-            lesson.
-          </dd>
-        </div>
-        <div>
-          <dt>Builder or operator</dt><dd>
-            Continue through the mechanism, evidence pack and correction history to understand how
-            the claim was tested.
-          </dd>
-        </div>
-        <div>
-          <dt>Technical evaluator</dt><dd>
-            Inspect the method, sources, versioned conditions and residual uncertainty. Strong
-            claims receive stronger gates.
-          </dd>
-        </div>
-      </dl>
     </div>
   </section>
 </BaseLayout>

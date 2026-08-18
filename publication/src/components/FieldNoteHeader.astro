@@ -7,9 +7,21 @@ interface Props {
   difficulty: string;
   publishedAt?: Date | string | undefined;
   reviewedAt?: Date | string | undefined;
+  evidenceStatus: string;
+  evidenceMeaning: string;
 }
 
-const { id, title, answer, arc, difficulty, publishedAt, reviewedAt } = Astro.props;
+const {
+  id,
+  title,
+  answer,
+  arc,
+  difficulty,
+  publishedAt,
+  reviewedAt,
+  evidenceStatus,
+  evidenceMeaning,
+} = Astro.props;
 const formatDate = (value?: Date | string) =>
   value
     ? new Intl.DateTimeFormat('en-GB', { day: 'numeric', month: 'short', year: 'numeric' }).format(
@@ -23,11 +35,18 @@ const formatDate = (value?: Date | string) =>
     <p class="field-note-header__folio">Field Note / {id}</p>
     <div class="field-note-header__copy">
       <h1>{title}</h1>
+      <p class="field-note-header__answer-label">Short answer</p>
       <p class="field-note-header__answer">{answer}</p>
+      <p class="field-note-header__evidence">
+        <span class={`evidence-stamp evidence-stamp--${evidenceStatus.toLowerCase()}`}>
+          {evidenceStatus}
+        </span>
+        <span>{evidenceMeaning}</span>
+      </p>
     </div>
     <dl class="field-note-header__meta" aria-label="Field Note metadata">
-      <div><dt>Learning arc</dt><dd>{arc}</dd></div>
-      <div><dt>Reading level</dt><dd>{difficulty}</dd></div>
+      <div><dt>Topic</dt><dd>{arc}</dd></div>
+      <div><dt>Depth</dt><dd>{difficulty}</dd></div>
       {
         publishedAt && (
           <div>

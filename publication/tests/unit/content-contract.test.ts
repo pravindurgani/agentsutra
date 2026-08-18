@@ -191,6 +191,8 @@ describe('AgentSutra content contracts', () => {
       supports: ['SC-1'],
       verification: 'verified',
       observedAt: '2026-08-17',
+      finding:
+        'This synthetic result exists only to exercise supporting-claim verification coverage.',
       method: 'A synthetic method exists only to exercise central-claim verification coverage.',
       limitation: 'This placeholder does not establish the truth of any actual public claim.',
     });

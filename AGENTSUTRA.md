@@ -1,4 +1,10 @@
-# AgentSutra v9.0.0 - Complete Project Documentation
+# AgentSutra Runtime v9.0.0 — frozen historical documentation
+
+> **Archive notice:** The Mac mini that hosted this Runtime was reset. The Runtime is unsupported,
+> receives no feature development and must not be described as currently operating. The active
+> flagship is the evidence-led publication in [`publication/`](publication/). The documentation
+> below records the system as it was last described and may contain claims that require fresh
+> verification before reuse.
 
 A Telegram-driven AI agent server running on Mac Mini M2 (16GB). Receives tasks via Telegram, processes them through a LangGraph Plan-Execute-Audit pipeline powered by Claude API, and delivers results back. Features: project registry with shared auto-managed venv, cross-model adversarial auditing (Sonnet+Opus), full internet access, local AI orchestration (Ollama), big data processing, production frontend generation, Docker container isolation for code execution, static deployment (GitHub Pages, Vercel, Firebase Hosting), local server preview with auto-kill, Playwright visual verification, 7 task types, 19 commands, budget enforcement with cost analytics, RAM guards, code content scanner with 28 patterns (Tier 4 + Tier 5 JS) + AST-based checks for importlib and shutil.rmtree, 39-pattern command blocklist, fabrication detection, truncation recovery, environment error detection, project dependency bootstrapping, streaming for extended thinking, honest failure delivery, partial result preservation, cross-task memory, model routing, task chaining, task retry, system setup validation, Ollama health monitoring, purpose-dependent model routing, and 840 automated tests (804 passing, 36 deselected).
 
@@ -18,18 +24,18 @@ The user is the system's owner, operator, and sole consumer. There are no untrus
 
 Every architectural decision in this codebase was made through the lens of: **"What is the right engineering choice for a single-user personal system running on dedicated hardware?"** Reviewers applying enterprise/multi-tenant criteria will find gaps that are intentional, not oversights:
 
-| Decision | Rationale |
-|----------|-----------|
-| **SQLite, not PostgreSQL** | Single-user on one machine. SQLite handles thousands of writes/second with WAL mode. Connection pooling is unnecessary — connection-per-call with 20s timeout is simpler and correct for this workload. |
-| **No LLM abstraction layer** | This is a Claude-powered system by design. Abstracting the provider adds complexity for a hypothetical migration that may never happen. If it does, the 5 node files are straightforward to adapt. |
-| **Telegram-only interface** | The user controls the system from their phone. A REST API or web UI would add attack surface, authentication complexity, and maintenance burden for zero practical benefit. |
+| Decision                                                            | Rationale                                                                                                                                                                                                                                                                                                                                                            |
+| ------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **SQLite, not PostgreSQL**                                          | Single-user on one machine. SQLite handles thousands of writes/second with WAL mode. Connection pooling is unnecessary — connection-per-call with 20s timeout is simpler and correct for this workload.                                                                                                                                                              |
+| **No LLM abstraction layer**                                        | This is a Claude-powered system by design. Abstracting the provider adds complexity for a hypothetical migration that may never happen. If it does, the 5 node files are straightforward to adapt.                                                                                                                                                                   |
+| **Telegram-only interface**                                         | The user controls the system from their phone. A REST API or web UI would add attack surface, authentication complexity, and maintenance burden for zero practical benefit.                                                                                                                                                                                          |
 | **Blocklist + Docker + Opus audit, not a capability-based sandbox** | The threat model is LLM hallucination, not adversarial users. The blocklist catches accidental destructive commands. Docker isolates filesystem access. Opus audits output quality. These three layers are sufficient for a system where the only user is the owner. A capability-based sandbox (seccomp, AppArmor) would be over-engineering for this threat model. |
-| **Docker isolation is opt-in, not default** | Many tasks require packages not pre-installed in the Docker image. Subprocess mode with the code content scanner provides adequate protection for a single-user system. Docker is recommended but not forced. |
-| **No Prometheus/StatsD/structured logging** | `/cost`, `/health`, `/usage`, and `/status` commands provide all the observability a single operator needs. JSON logs and metrics exporters serve teams with dashboards and alerting infrastructure — this system has neither. |
-| **No multi-user isolation** | `ALLOWED_USER_IDS` is a flat allowlist. All users share `workspace/outputs/`. This is correct because there is one user. Per-user workspace isolation, RBAC, and tenant separation are multi-tenant concerns. |
-| **Synchronous pipeline in `asyncio.to_thread()`** | The bot handles 5-30 tasks/day. The synchronous LangGraph pipeline occupies one thread for 15-60 seconds per task. With `MAX_CONCURRENT_TASKS=3`, this uses 3 threads at peak. An async pipeline would add complexity for no measurable benefit at this scale. |
-| **`psutil` RAM guard instead of cgroups** | Simple, cross-platform, sufficient. A Mac Mini with 16GB RAM serving one user does not need container-level memory isolation. |
-| **APScheduler 3.x, not Celery** | Celery requires Redis/RabbitMQ infrastructure. APScheduler with SQLite persistence gives cron-like scheduling with zero external dependencies. Appropriate for a system running on one machine. |
+| **Docker isolation is opt-in, not default**                         | Many tasks require packages not pre-installed in the Docker image. Subprocess mode with the code content scanner provides adequate protection for a single-user system. Docker is recommended but not forced.                                                                                                                                                        |
+| **No Prometheus/StatsD/structured logging**                         | `/cost`, `/health`, `/usage`, and `/status` commands provide all the observability a single operator needs. JSON logs and metrics exporters serve teams with dashboards and alerting infrastructure — this system has neither.                                                                                                                                       |
+| **No multi-user isolation**                                         | `ALLOWED_USER_IDS` is a flat allowlist. All users share `workspace/outputs/`. This is correct because there is one user. Per-user workspace isolation, RBAC, and tenant separation are multi-tenant concerns.                                                                                                                                                        |
+| **Synchronous pipeline in `asyncio.to_thread()`**                   | The bot handles 5-30 tasks/day. The synchronous LangGraph pipeline occupies one thread for 15-60 seconds per task. With `MAX_CONCURRENT_TASKS=3`, this uses 3 threads at peak. An async pipeline would add complexity for no measurable benefit at this scale.                                                                                                       |
+| **`psutil` RAM guard instead of cgroups**                           | Simple, cross-platform, sufficient. A Mac Mini with 16GB RAM serving one user does not need container-level memory isolation.                                                                                                                                                                                                                                        |
+| **APScheduler 3.x, not Celery**                                     | Celery requires Redis/RabbitMQ infrastructure. APScheduler with SQLite persistence gives cron-like scheduling with zero external dependencies. Appropriate for a system running on one machine.                                                                                                                                                                      |
 
 ### Design Philosophy
 
@@ -209,6 +215,7 @@ AgentSutra/
 ## Every File Explained
 
 ### `main.py` - Entry Point
+
 - Imports `config` first to ensure `.env` is loaded before any other module
 - Configures logging to both console and `agentsutra.log` via `RotatingFileHandler` (10MB max, 3 backups) to prevent unbounded log growth (v6.5)
 - Validates three required env vars: `ANTHROPIC_API_KEY`, `TELEGRAM_BOT_TOKEN`, `ALLOWED_USER_IDS` -- exits with clear error if any missing
@@ -220,6 +227,7 @@ AgentSutra/
 - Starts bot in long-polling mode with `drop_pending_updates=True` (ignores messages sent while bot was offline)
 
 ### `config.py` - Configuration
+
 - Loads `.env` at import time via `python-dotenv`
 - Defines all path constants: `BASE_DIR`, `WORKSPACE_DIR`, `UPLOADS_DIR`, `OUTPUTS_DIR`, `PROJECTS_DIR`, `DB_PATH`
 - Auto-creates all workspace directories and `storage/` directory on import via `mkdir(parents=True, exist_ok=True)`
@@ -233,18 +241,21 @@ AgentSutra/
 - **Visual check config (v8.3):** `VISUAL_CHECK_ENABLED`, `VISUAL_CHECK_TIMEOUT`
 
 ### `projects.yaml` - Project Registry (v2)
+
 - YAML file defining 8 registered projects the agent can invoke instead of writing code from scratch
 - Each project entry has: `name`, `path` (absolute), `description` (multiline, Claude reads this), `commands` (named shell commands with `{placeholder}` parameters), `timeout` (seconds), `requires_file` (boolean), `triggers` (keyword list for matching)
 - Current projects: Affiliate Job Scraper, Jobs Analysis Pipeline v4, iGaming Intelligence Dashboard, Work Reports Generator, Domain Categorisation, Industry Voices Benchmarks, Suppliers Database, Newsletter Benchmarks
 - Paths must be updated when transferring to a different machine
 
 ### `bot/telegram_bot.py` - Bot Setup
+
 - Creates `ApplicationBuilder` with bot token from config
 - Registers 19 command handlers: `/start`, `/status`, `/history`, `/usage`, `/cost`, `/health`, `/exec`, `/context`, `/cancel`, `/retry`, `/projects`, `/schedule`, `/chain`, `/debug`, `/deploy`, `/servers`, `/stopserver`, `/setup`, `/reindex`
 - Registers file handlers (Document, Photo) before text handler to ensure proper routing
 - Text handler is catch-all for non-command messages via `filters.TEXT & ~filters.COMMAND`
 
 ### `bot/handlers.py` - Request Handling (v6.2+: resource guards, rate limiter, v8 commands)
+
 - `auth_required` decorator: wraps every handler, rejects Telegram users not in `ALLOWED_USER_IDS`, uses `@functools.wraps` for proper function metadata
 - `STAGE_LABELS` dict: maps internal stage names to user-friendly streaming status messages
 - **`_check_resources()` (v6.2):** checks RAM usage via `psutil` and active task count before launching pipeline. Returns rejection message or None.
@@ -271,6 +282,7 @@ AgentSutra/
 - `_send_long_message`: splits text at line boundaries respecting Telegram's 4096-char limit, hard-splits individual lines that exceed the limit
 
 ### `brain/state.py` - State Definition
+
 - `AgentState(TypedDict)` with 23 fields across 10 groups:
   - **Input:** `task_id` (str), `user_id` (int), `message` (str), `files` (list of paths)
   - **Classification:** `task_type` (str: "code" | "data" | "file" | "automation" | "project" | "ui_design" | "frontend")
@@ -285,6 +297,7 @@ AgentSutra/
   - **Output:** `final_response` (str), `artifacts` (list of file paths), `server_url` (str, v8.2), `deploy_url` (str, v8.1)
 
 ### `brain/graph.py` - LangGraph Pipeline
+
 - Thread-safe stage tracking via `_task_stages` dict protected by `threading.Lock` -- enables real-time streaming status to Telegram from the worker thread
 - `set_stage()` / `get_stage()` / `clear_stage()`: thread-safe stage management
 - `_wrap_node()`: wraps each pipeline node function to automatically call `set_stage()` with the node name before execution
@@ -294,6 +307,7 @@ AgentSutra/
 - `run_task()`: populates initial state with all 23 fields defaulted (including `stage_timings`, `server_url`, `deploy_url`), invokes the compiled graph, clears stage tracking in `finally` block
 
 ### `brain/nodes/classifier.py` - Task Classification (v2: project-aware)
+
 - **Fast path (v2):** calls `match_project()` first to check for trigger keyword matches before calling Claude; if matched, immediately returns `task_type: "project"` with project config -- no API call needed
 - **Slow path:** sends message to Claude with classification prompt that includes all registered projects summary via `get_all_projects_summary()`
 - 7 categories: `project` (v2), `frontend`, `ui_design`, `code`, `data`, `file`, `automation`
@@ -303,6 +317,7 @@ AgentSutra/
 - If Claude classifies as "project" but fast path missed it, does a second `match_project()` call
 
 ### `brain/nodes/planner.py` - Plan Generation (v2 + v8: TDD, project mode, memory, file injection, security)
+
 - **TDD_INSTRUCTION (v2):** constant appended to all non-project system prompts, instructs Claude to write `assert` statements that verify correctness -- data tasks assert row counts and column names, code tasks include at least 2 assertions, file tasks assert output exists, all end with "ALL ASSERTIONS PASSED"
 - **CAPABILITIES_BLOCK:** shared system capabilities injected into all planner prompts (internet, runtime installs, Ollama, filesystem, shell, big data rules). Braces in code examples are escaped for `.format()` compatibility.
 - **PROJECT_SYSTEM (v2):** dedicated system prompt for project tasks -- injects full project context (name, path, description, commands, timeout) via `get_project_context()`, explicitly instructs Claude to use existing commands instead of writing new code
@@ -315,6 +330,7 @@ AgentSutra/
 - On retry: appends audit feedback + previous execution output (up to 3K chars) to prompt, asks for revised plan
 
 ### `brain/nodes/executor.py` - Code Generation + Execution (v2: shell mode + traceback injection)
+
 - Two execution paths based on task type:
   - **`_execute_project()` (v2):** generates a bash script from the plan using SHELL_GEN_SYSTEM prompt, executes via `run_shell()` with project's working directory and timeout, passes project's venv path if configured
   - **`_execute_code()`:** generates Python/JS code from the plan, strips markdown code blocks via regex, executes via `run_code()` in sandbox
@@ -324,6 +340,7 @@ AgentSutra/
 - Both paths guard against empty code generation
 
 ### `brain/nodes/auditor.py` - Quality Verification (v2 + v6.5 + v8.3: cross-model adversarial review, fail-safe defaults, visual check)
+
 - **Cross-model auditing (v2):** executor uses `DEFAULT_MODEL` (Sonnet), auditor uses `COMPLEX_MODEL` (Opus) -- a different, more capable model reviews the work of the generating model, preventing the "echo chamber" effect where the same model approves its own output
 - Strict evaluation criteria: checks exit code, assertion results (looks for "ALL ASSERTIONS PASSED"), traceback presence, output correctness, completeness
 - v2: project-specific audit criteria -- checks that project commands actually ran and produced expected output
@@ -334,6 +351,7 @@ AgentSutra/
 - Uses `temperature=0.0` for deterministic auditing
 
 ### `brain/nodes/deliverer.py` - Response Formatting (v7 + v8: memory, deployment, screenshots)
+
 - Formats final text response based on task type and audit verdict
 - Project tasks (v2): shows project name in success message ("Project 'X' executed successfully.")
 - Code tasks: includes code in backtick blocks (truncated at 3500 chars with note about attached file)
@@ -347,6 +365,7 @@ AgentSutra/
 - **Debug sidecar (v8.0):** Builds per-task debug JSON (timings, verdict, retries, server_url, deploy_url) for `/debug` command
 
 ### `tools/claude_client.py` - Claude API Wrapper
+
 - Lazy client initialization via `_get_client()` -- only creates `Anthropic` client on first API call
 - **Budget enforcement (v6.2):** `_check_budget()` runs before every API call. Queries daily and monthly spend from `api_usage` table against `DAILY_BUDGET_USD` / `MONTHLY_BUDGET_USD`. Raises `BudgetExceededError` (subclass of `RuntimeError`) if exceeded. Gracefully degrades on DB errors (allows call, logs warning).
 - `call()`: sends message to Claude with retry logic (up to `MAX_RETRIES` attempts):
@@ -365,6 +384,7 @@ AgentSutra/
 - `get_usage_summary()` **(v2.2: reads from DB):** returns lifetime totals (calls, input tokens, output tokens) from persistent storage, not ephemeral session data
 
 ### `tools/sandbox.py` - Code Execution (v2 + v6.2 + v6.3 + v6.4 + v6.5 + v6.6: shell mode, traceback extraction, expanded safety, Docker isolation, process group kill, code scanner)
+
 - `ExecutionResult` dataclass: `success`, `stdout`, `stderr`, `traceback` (v2), `files_created`, `timed_out`, `return_code`, `auto_installed` (v6.3)
 - **Command blocklist (v6.6+, 39 patterns):** `_BLOCKED_PATTERNS` checks all commands before execution. Patterns include: `rm -rf` (root/home/critical dirs), `mkfs`, `dd if=`, `shutdown/reboot/halt/poweroff`, `fork bomb`, `sudo`, `curl|sh`, `curl|bash`, `wget|sh`, `wget|bash`, `chmod 777/a+rwx`, interpreter inline execution (`python -c`, `perl -e`, `ruby -e`, `node -e`), destructive find (`-delete`, `-exec rm`), base64 decode piped to shell, home directory relocation (`mv ~/`), dotfile write/append redirects (`.bashrc`, `.ssh`, `.gitconfig`, etc.), symlink attacks on dotfiles, printf/echo piped to shell, eval with command substitution, bash/sh -c string splitting. Blocked commands return failure with security warning.
 - **Code content scanner (v6.6):** `_check_code_safety()` scans Python code content before subprocess execution. Blocks credential file reads (`~/.ssh/`, `~/.gnupg/`, `.env`, PEM, id_rsa), `os.system()`, `shutil.rmtree(~/root)`, raw socket connections, `/etc/passwd|shadow` reads. Not applied in Docker mode. Defense-in-depth, not a security boundary.
@@ -379,6 +399,7 @@ AgentSutra/
 - **Server management (v8.2):** Thread-safe server registry with `start_server()`, `stop_server()`, `stop_all_servers()`, `list_servers()`. Port allocation from configurable range (8100-8120), HTTP polling for readiness, auto-kill timer via `threading.Timer`. Executor auto-starts `python3 -m http.server` for frontend/ui_design tasks after HTML generation.
 
 ### `tools/projects.py` - Project Registry (v2)
+
 - `load_projects()`: reads `projects.yaml` via `yaml.safe_load()`, caches in module-level `_projects` list
 - `get_projects()`: returns cached list, auto-loads if empty
 - `match_project()`: iterates all projects' trigger keywords (case-insensitive substring match), scores by trigger length (longer = more specific), returns best match or `None`
@@ -386,6 +407,7 @@ AgentSutra/
 - `get_all_projects_summary()`: one-line summary of each project with first 3 triggers, used in classifier's system prompt
 
 ### `tools/model_router.py` - Model Router (v8.0.0)
+
 - Routes LLM calls to Claude or Ollama based on purpose, complexity, RAM availability, and daily budget
 - `route_and_call()` is the main entry point — drop-in replacement for `claude_client.call()` with routing intelligence
 - Routing rules: audit → always Opus, code_gen → always Sonnet, low-complexity classify/plan → Ollama if available
@@ -395,6 +417,7 @@ AgentSutra/
 - `_ollama_available()` checks Ollama API with 2-second timeout; `_ram_below_threshold()` uses psutil
 
 ### `tools/deployer.py` - Static Deployment (v8.1 + v8.4)
+
 - Module for deploying generated frontend artifacts to live URLs
 - `deploy(output_dir, project_name)`: main entry point — routes to provider-specific function based on `config.DEPLOY_PROVIDER`
 - **GitHub Pages (v8.1):** `_deploy_github_pages()` — uses `gh` CLI to push to a dedicated repo's branch. Requires `DEPLOY_REPO` and `DEPLOY_GITHUB_TOKEN`.
@@ -404,6 +427,7 @@ AgentSutra/
 - Credential safety: `DEPLOY_FIREBASE_TOKEN` is stripped from subprocess env via `PROTECTED_ENV_SUBSTRINGS` containing "TOKEN"
 
 ### `tools/visual_check.py` - Playwright Visual Verification (v8.3)
+
 - `VisualCheckResult` dataclass: `checked`, `loads`, `status_code`, `console_errors`, `screenshot_path`, `error`
 - `check_page(url, screenshot_dir, timeout)`: launches headless Chromium via Playwright, navigates to URL, captures console errors via callback, takes full-page screenshot, returns structured result
 - **Graceful degradation:** imports `playwright.sync_api` inside the function — if Playwright is not installed, returns `VisualCheckResult(checked=False)` with no crash
@@ -411,6 +435,7 @@ AgentSutra/
 - Used by `auditor.py` to inject visual context into the Opus audit prompt
 
 ### `tools/file_manager.py` - File Operations
+
 - `save_upload()`: validates against `MAX_FILE_SIZE_BYTES`, saves bytes to uploads dir with UUID-based unique filenames (`{stem}_{uuid4_hex8}{suffix}`) to prevent TOCTOU race conditions (v6.7)
 - `get_file_content()`: reads text files with UTF-8 encoding (errors="replace"), truncates at `max_chars` (default 50K), returns binary file description for non-text files
 - `list_outputs()`: lists files in outputs directory
@@ -418,6 +443,7 @@ AgentSutra/
 - `ensure_project_dir()`: creates named subdirectory under `workspace/projects/`
 
 ### `storage/db.py` - SQLite Persistence
+
 - `init_db()`: creates `tasks` table with 11 columns if not exists. **v6.2:** enables `PRAGMA journal_mode=WAL` for concurrent write safety.
 - Schema: `id` (TEXT PK), `user_id` (INTEGER), `message` (TEXT), `task_type` (TEXT), `status` (TEXT, default "pending"), `plan` (TEXT), `result` (TEXT), `error` (TEXT), `token_usage` (TEXT/JSON), `created_at` (TEXT/ISO), `completed_at` (TEXT/ISO)
 - `create_task()`: inserts new record with UTC timestamp
@@ -429,6 +455,7 @@ AgentSutra/
 - Each function opens and closes its own connection (acceptable for SQLite, avoids connection sharing across async contexts)
 
 ### `scheduler/cron.py` - Task Scheduling (v2: SQLite-backed persistence)
+
 - `AsyncIOScheduler` with `SQLAlchemyJobStore` backed by a **separate** SQLite database (`storage/scheduler.db`) to avoid lock contention with the main aiosqlite database (`storage/agentsutra.db`) -- scheduled tasks survive process restarts and reboots
 - `start_scheduler()`: starts scheduler, logs count of persisted jobs loaded from DB
 - `stop_scheduler()`: graceful shutdown with `wait=False`
@@ -442,21 +469,22 @@ AgentSutra/
 
 ### Dependencies (requirements.txt)
 
-| Library | Version | Purpose | Why This One | Used In |
-|---------|---------|---------|--------------|---------|
-| **anthropic** | >=0.50.0 | Claude API SDK | Direct SDK, not LangChain wrapper. Cleaner API, typed error classes (RateLimitError, APITimeoutError, APIError), lower overhead than langchain-anthropic. Full control over retries and token tracking. | `tools/claude_client.py` |
-| **langgraph** | >=0.2.0 | Agent orchestration | State-based cyclic graph for Plan-Execute-Audit loops. Supports conditional edges (retry routing after audit). Built by LangChain team, production-grade. TypedDict state makes data flow explicit. | `brain/graph.py` |
-| **langchain-core** | >=0.3.0 | LangGraph dependency | Required by langgraph for base types and graph primitives. Not imported directly in our code. | (transitive) |
-| **python-telegram-bot** | >=21.0 | Telegram interface | v21+ is fully async-native. ApplicationBuilder pattern, composable filters, context-based handlers with user_data for state. Most mature Python Telegram library. Supports message editing for streaming status. | `bot/telegram_bot.py`, `bot/handlers.py` |
-| **aiosqlite** | >=0.20.0 | Async SQLite | Wraps sqlite3 in async/await. Lightweight, no server process. Perfect for single-machine task persistence. Row factory support for dict-like access. | `storage/db.py` |
-| **apscheduler** | >=3.10.0 | Task scheduling | AsyncIOScheduler integrates with asyncio event loop. Supports interval scheduling and SQLAlchemy job store for persistence across reboots. | `scheduler/cron.py` |
-| **sqlalchemy** | >=2.0.0 | APScheduler job store | Provides the SQLAlchemyJobStore backend so APScheduler can persist scheduled jobs to SQLite. Not used directly for ORM. | `scheduler/cron.py` (via APScheduler) |
-| **python-dotenv** | >=1.0.0 | Environment variables | Loads `.env` file into `os.environ` at import time. Industry standard for secret management. | `config.py` |
-| **pyyaml** | >=6.0.0 | YAML parsing | Parses `projects.yaml` registry via `yaml.safe_load()`. Safe loader prevents arbitrary code execution from YAML. | `tools/projects.py` |
+| Library                 | Version  | Purpose               | Why This One                                                                                                                                                                                                     | Used In                                  |
+| ----------------------- | -------- | --------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ---------------------------------------- |
+| **anthropic**           | >=0.50.0 | Claude API SDK        | Direct SDK, not LangChain wrapper. Cleaner API, typed error classes (RateLimitError, APITimeoutError, APIError), lower overhead than langchain-anthropic. Full control over retries and token tracking.          | `tools/claude_client.py`                 |
+| **langgraph**           | >=0.2.0  | Agent orchestration   | State-based cyclic graph for Plan-Execute-Audit loops. Supports conditional edges (retry routing after audit). Built by LangChain team, production-grade. TypedDict state makes data flow explicit.              | `brain/graph.py`                         |
+| **langchain-core**      | >=0.3.0  | LangGraph dependency  | Required by langgraph for base types and graph primitives. Not imported directly in our code.                                                                                                                    | (transitive)                             |
+| **python-telegram-bot** | >=21.0   | Telegram interface    | v21+ is fully async-native. ApplicationBuilder pattern, composable filters, context-based handlers with user_data for state. Most mature Python Telegram library. Supports message editing for streaming status. | `bot/telegram_bot.py`, `bot/handlers.py` |
+| **aiosqlite**           | >=0.20.0 | Async SQLite          | Wraps sqlite3 in async/await. Lightweight, no server process. Perfect for single-machine task persistence. Row factory support for dict-like access.                                                             | `storage/db.py`                          |
+| **apscheduler**         | >=3.10.0 | Task scheduling       | AsyncIOScheduler integrates with asyncio event loop. Supports interval scheduling and SQLAlchemy job store for persistence across reboots.                                                                       | `scheduler/cron.py`                      |
+| **sqlalchemy**          | >=2.0.0  | APScheduler job store | Provides the SQLAlchemyJobStore backend so APScheduler can persist scheduled jobs to SQLite. Not used directly for ORM.                                                                                          | `scheduler/cron.py` (via APScheduler)    |
+| **python-dotenv**       | >=1.0.0  | Environment variables | Loads `.env` file into `os.environ` at import time. Industry standard for secret management.                                                                                                                     | `config.py`                              |
+| **pyyaml**              | >=6.0.0  | YAML parsing          | Parses `projects.yaml` registry via `yaml.safe_load()`. Safe loader prevents arbitrary code execution from YAML.                                                                                                 | `tools/projects.py`                      |
 
 ### Usage Examples From Actual Code
 
 **anthropic** -- `tools/claude_client.py`
+
 ```python
 from anthropic import Anthropic, APIError, APITimeoutError, RateLimitError
 
@@ -474,6 +502,7 @@ output_tokens = response.usage.output_tokens
 ```
 
 **langgraph** -- `brain/graph.py`
+
 ```python
 from langgraph.graph import StateGraph, START, END
 
@@ -492,6 +521,7 @@ result = agent_graph.invoke(initial_state)
 ```
 
 **python-telegram-bot** -- `bot/handlers.py`
+
 ```python
 from telegram import Update
 from telegram.ext import ContextTypes
@@ -506,6 +536,7 @@ while not task_future.done():
 ```
 
 **aiosqlite** -- `storage/db.py`
+
 ```python
 import aiosqlite
 async with aiosqlite.connect(config.DB_PATH) as db:
@@ -519,6 +550,7 @@ async with aiosqlite.connect(config.DB_PATH) as db:
 ```
 
 **apscheduler + sqlalchemy** -- `scheduler/cron.py`
+
 ```python
 from apscheduler.schedulers.asyncio import AsyncIOScheduler
 from apscheduler.jobstores.sqlalchemy import SQLAlchemyJobStore
@@ -532,6 +564,7 @@ scheduler.start()
 ```
 
 **pyyaml** -- `tools/projects.py`
+
 ```python
 import yaml
 with open(_REGISTRY_PATH) as f:
@@ -577,6 +610,7 @@ cp .env.example .env
 ```
 
 Edit `.env` with your actual values:
+
 ```
 ANTHROPIC_API_KEY=sk-ant-your-key-here
 TELEGRAM_BOT_TOKEN=123456789:ABCdefGHIjklMNOpqrsTUVwxyz
@@ -592,6 +626,7 @@ MAX_FILE_SIZE_MB=50
 #### Budget Controls (Optional but Recommended)
 
 Add daily and/or monthly API spend limits to `.env` to prevent runaway costs:
+
 ```
 DAILY_BUDGET_USD=5       # Max $5/day on API calls
 MONTHLY_BUDGET_USD=50    # Max $50/month on API calls
@@ -628,6 +663,7 @@ projects:
 ```
 
 If you have no external projects to register, you can leave the file with an empty list:
+
 ```yaml
 projects: []
 ```
@@ -640,6 +676,7 @@ python main.py
 ```
 
 Expected startup output:
+
 ```
 AgentSutra starting up
 Allowed user IDs: [123456789]
@@ -660,15 +697,20 @@ For isolated code execution (prevents LLM-generated code from accessing host fil
 1. Install Docker Desktop for Mac: https://docs.docker.com/desktop/install/mac-install/
 2. Launch Docker Desktop and wait for it to fully start
 3. Build the sandbox image:
+
 ```bash
 chmod +x scripts/build_sandbox.sh
 ./scripts/build_sandbox.sh
 ```
+
 4. Enable in `.env`:
+
 ```
 DOCKER_ENABLED=true
 ```
+
 5. Optional configuration:
+
 ```
 DOCKER_MEMORY_LIMIT=2g     # Max memory per container
 DOCKER_CPU_LIMIT=2          # Max CPU cores per container
@@ -680,6 +722,7 @@ Without Docker, code executes via subprocess with full user-level access (protec
 ### Step 7: Test
 
 Open Telegram, find your bot, and send `/start`. Then try:
+
 - `Write a Python function that checks if a number is prime` (code task)
 - Send a CSV file, then type `Analyze this data and create a chart` (data task)
 - `Run the job scraper` (project invocation)
@@ -764,6 +807,7 @@ mkdir -p ~/Library/LaunchAgents
 ```
 
 Create `~/Library/LaunchAgents/com.agentsutra.bot.plist`:
+
 ```xml
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN"
@@ -797,6 +841,7 @@ Create `~/Library/LaunchAgents/com.agentsutra.bot.plist`:
 ```
 
 Load and manage:
+
 ```bash
 # Load (start now + on boot)
 launchctl load ~/Library/LaunchAgents/com.agentsutra.bot.plist
@@ -823,6 +868,7 @@ AgentSutra auto-prunes conversation history (30 days) and API usage records (90 
 - **Docker dangling images**: Failed or interrupted image builds leave orphaned layers.
 
 Create `~/AgentSutra/scripts/monthly_maintenance.sh`:
+
 ```bash
 #!/bin/bash
 # AgentSutra monthly maintenance — reclaim disk space
@@ -864,6 +910,7 @@ chmod +x ~/AgentSutra/scripts/monthly_maintenance.sh
 ```
 
 Auto-schedule via launchd — create `~/Library/LaunchAgents/com.agentsutra.maintenance.plist`:
+
 ```xml
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN"
@@ -908,64 +955,64 @@ launchctl load ~/Library/LaunchAgents/com.agentsutra.maintenance.plist
 
 All variables are set in `.env` and loaded by `config.py` at import time.
 
-| Variable | Default | Required | Description |
-|----------|---------|----------|-------------|
-| `ANTHROPIC_API_KEY` | -- | Yes | Anthropic API key (starts with `sk-ant-`) |
-| `TELEGRAM_BOT_TOKEN` | -- | Yes | Telegram bot token from @BotFather |
-| `ALLOWED_USER_IDS` | -- | Yes | Comma-separated Telegram user IDs (e.g., `123,456`) |
-| `DEFAULT_MODEL` | `claude-sonnet-4-6` | No | Model for classification, planning, code generation |
-| `COMPLEX_MODEL` | `claude-opus-4-6` | No | Model for auditing and complex tasks (cross-model review) |
-| `ENABLE_THINKING` | `true` | No | Enable extended thinking for Claude models |
-| `EXECUTION_TIMEOUT` | `120` | No | Max seconds for code/shell execution |
-| `MAX_CODE_EXECUTION_TIMEOUT` | `600` | No | Absolute upper bound for dynamically estimated timeouts |
-| `LONG_TIMEOUT` | `900` | No | Full pipeline timeout for interactive + scheduled tasks |
-| `MAX_RETRIES` | `3` | No | Max audit retry attempts before giving up |
-| `API_MAX_RETRIES` | `5` | No | Claude API call retries (rate limit, timeout, API errors) |
-| `MAX_FILE_SIZE_MB` | `50` | No | Max upload file size in megabytes |
-| `OLLAMA_BASE_URL` | `http://localhost:11434` | No | Ollama API endpoint for local AI models |
-| `OLLAMA_DEFAULT_MODEL` | `llama3.1:8b` | No | Default Ollama model for local inference |
-| `BIG_DATA_ROW_THRESHOLD` | `500` | No | Row count above which data tasks use chunked processing |
-| `MAX_CONCURRENT_TASKS` | `3` | No | Max simultaneous pipeline executions (v6.2) |
-| `RAM_THRESHOLD_PERCENT` | `90` | No | Reject new tasks when system RAM exceeds this % (v6.2) |
-| `DAILY_BUDGET_USD` | `0` | No | Daily API spend limit in USD; 0 = unlimited (v6.2) |
-| `MONTHLY_BUDGET_USD` | `0` | No | Monthly API spend limit in USD; 0 = unlimited (v6.2) |
-| `DOCKER_ENABLED` | `false` | No | Enable Docker container isolation for code execution (v6.4) |
-| `DOCKER_IMAGE` | `agentsutra-sandbox` | No | Docker image name for sandbox containers (v6.4) |
-| `DOCKER_MEMORY_LIMIT` | `2g` | No | Max memory per container, Docker format (v6.4) |
-| `DOCKER_CPU_LIMIT` | `2` | No | Max CPU cores per container (v6.4) |
-| `DOCKER_NETWORK` | `bridge` | No | Container network mode: `bridge` (full) or `none` (airgapped) (v6.4) |
-| `MAX_FILE_INJECT_COUNT` | `50` | No | Max project source files before skipping dynamic file injection (v8.0) |
-| `DEPLOY_ENABLED` | `false` | No | Enable static deployment for generated frontends (v8.1) |
-| `DEPLOY_PROVIDER` | `github_pages` | No | Deployment provider: `github_pages`, `vercel`, or `firebase` (v8.1) |
-| `DEPLOY_REPO` | -- | No | GitHub repo for Pages deployment (e.g., `user/deployed-sites`) (v8.1) |
-| `DEPLOY_GITHUB_TOKEN` | -- | No | GitHub token for Pages deployment (v8.1) |
-| `DEPLOY_VERCEL_TOKEN` | -- | No | Vercel token for deployment (v8.1) |
-| `DEPLOY_BASE_URL` | -- | No | Base URL for deployed sites (v8.1) |
-| `DEPLOY_FIREBASE_PROJECT` | -- | No | Firebase project ID for Hosting deployment (v8.4) |
-| `DEPLOY_FIREBASE_TOKEN` | -- | No | Firebase CI token for deployment (v8.4) |
-| `SERVER_START_TIMEOUT` | `30` | No | Seconds to wait for local server to respond (v8.2) |
-| `SERVER_MAX_LIFETIME` | `300` | No | Auto-kill preview servers after this many seconds (v8.2) |
-| `SERVER_PORT_RANGE_START` | `8100` | No | Start of port range for local servers (v8.2) |
-| `SERVER_PORT_RANGE_END` | `8120` | No | End of port range for local servers (v8.2) |
-| `VISUAL_CHECK_ENABLED` | `false` | No | Enable Playwright headless visual verification (v8.3) |
-| `VISUAL_CHECK_TIMEOUT` | `15` | No | Seconds for Playwright page load timeout (v8.3) |
+| Variable                     | Default                  | Required | Description                                                            |
+| ---------------------------- | ------------------------ | -------- | ---------------------------------------------------------------------- |
+| `ANTHROPIC_API_KEY`          | --                       | Yes      | Anthropic API key (starts with `sk-ant-`)                              |
+| `TELEGRAM_BOT_TOKEN`         | --                       | Yes      | Telegram bot token from @BotFather                                     |
+| `ALLOWED_USER_IDS`           | --                       | Yes      | Comma-separated Telegram user IDs (e.g., `123,456`)                    |
+| `DEFAULT_MODEL`              | `claude-sonnet-4-6`      | No       | Model for classification, planning, code generation                    |
+| `COMPLEX_MODEL`              | `claude-opus-4-6`        | No       | Model for auditing and complex tasks (cross-model review)              |
+| `ENABLE_THINKING`            | `true`                   | No       | Enable extended thinking for Claude models                             |
+| `EXECUTION_TIMEOUT`          | `120`                    | No       | Max seconds for code/shell execution                                   |
+| `MAX_CODE_EXECUTION_TIMEOUT` | `600`                    | No       | Absolute upper bound for dynamically estimated timeouts                |
+| `LONG_TIMEOUT`               | `900`                    | No       | Full pipeline timeout for interactive + scheduled tasks                |
+| `MAX_RETRIES`                | `3`                      | No       | Max audit retry attempts before giving up                              |
+| `API_MAX_RETRIES`            | `5`                      | No       | Claude API call retries (rate limit, timeout, API errors)              |
+| `MAX_FILE_SIZE_MB`           | `50`                     | No       | Max upload file size in megabytes                                      |
+| `OLLAMA_BASE_URL`            | `http://localhost:11434` | No       | Ollama API endpoint for local AI models                                |
+| `OLLAMA_DEFAULT_MODEL`       | `llama3.1:8b`            | No       | Default Ollama model for local inference                               |
+| `BIG_DATA_ROW_THRESHOLD`     | `500`                    | No       | Row count above which data tasks use chunked processing                |
+| `MAX_CONCURRENT_TASKS`       | `3`                      | No       | Max simultaneous pipeline executions (v6.2)                            |
+| `RAM_THRESHOLD_PERCENT`      | `90`                     | No       | Reject new tasks when system RAM exceeds this % (v6.2)                 |
+| `DAILY_BUDGET_USD`           | `0`                      | No       | Daily API spend limit in USD; 0 = unlimited (v6.2)                     |
+| `MONTHLY_BUDGET_USD`         | `0`                      | No       | Monthly API spend limit in USD; 0 = unlimited (v6.2)                   |
+| `DOCKER_ENABLED`             | `false`                  | No       | Enable Docker container isolation for code execution (v6.4)            |
+| `DOCKER_IMAGE`               | `agentsutra-sandbox`     | No       | Docker image name for sandbox containers (v6.4)                        |
+| `DOCKER_MEMORY_LIMIT`        | `2g`                     | No       | Max memory per container, Docker format (v6.4)                         |
+| `DOCKER_CPU_LIMIT`           | `2`                      | No       | Max CPU cores per container (v6.4)                                     |
+| `DOCKER_NETWORK`             | `bridge`                 | No       | Container network mode: `bridge` (full) or `none` (airgapped) (v6.4)   |
+| `MAX_FILE_INJECT_COUNT`      | `50`                     | No       | Max project source files before skipping dynamic file injection (v8.0) |
+| `DEPLOY_ENABLED`             | `false`                  | No       | Enable static deployment for generated frontends (v8.1)                |
+| `DEPLOY_PROVIDER`            | `github_pages`           | No       | Deployment provider: `github_pages`, `vercel`, or `firebase` (v8.1)    |
+| `DEPLOY_REPO`                | --                       | No       | GitHub repo for Pages deployment (e.g., `user/deployed-sites`) (v8.1)  |
+| `DEPLOY_GITHUB_TOKEN`        | --                       | No       | GitHub token for Pages deployment (v8.1)                               |
+| `DEPLOY_VERCEL_TOKEN`        | --                       | No       | Vercel token for deployment (v8.1)                                     |
+| `DEPLOY_BASE_URL`            | --                       | No       | Base URL for deployed sites (v8.1)                                     |
+| `DEPLOY_FIREBASE_PROJECT`    | --                       | No       | Firebase project ID for Hosting deployment (v8.4)                      |
+| `DEPLOY_FIREBASE_TOKEN`      | --                       | No       | Firebase CI token for deployment (v8.4)                                |
+| `SERVER_START_TIMEOUT`       | `30`                     | No       | Seconds to wait for local server to respond (v8.2)                     |
+| `SERVER_MAX_LIFETIME`        | `300`                    | No       | Auto-kill preview servers after this many seconds (v8.2)               |
+| `SERVER_PORT_RANGE_START`    | `8100`                   | No       | Start of port range for local servers (v8.2)                           |
+| `SERVER_PORT_RANGE_END`      | `8120`                   | No       | End of port range for local servers (v8.2)                             |
+| `VISUAL_CHECK_ENABLED`       | `false`                  | No       | Enable Playwright headless visual verification (v8.3)                  |
+| `VISUAL_CHECK_TIMEOUT`       | `15`                     | No       | Seconds for Playwright page load timeout (v8.3)                        |
 
 ### Derived Constants (not configurable via .env)
 
-| Constant | Value | Source |
-|----------|-------|--------|
-| `BASE_DIR` | Parent of `config.py` | `Path(__file__).parent` |
-| `WORKSPACE_DIR` | `BASE_DIR/workspace` | Hardcoded |
-| `UPLOADS_DIR` | `WORKSPACE_DIR/uploads` | Hardcoded |
-| `OUTPUTS_DIR` | `WORKSPACE_DIR/outputs` | Hardcoded |
-| `PROJECTS_DIR` | `WORKSPACE_DIR/projects` | Hardcoded |
-| `DB_PATH` | `BASE_DIR/storage/agentsutra.db` | Hardcoded |
-| `HOST_HOME` | User's home directory | `Path.home()` |
-| `PROTECTED_ENV_KEYS` | `{ANTHROPIC_API_KEY, TELEGRAM_BOT_TOKEN}` | Hardcoded, stripped from subprocess env (exact match) |
-| `PROTECTED_ENV_SUBSTRINGS` | `{KEY, TOKEN, SECRET, PASSWORD, CREDENTIAL, DATABASE, AUTH}` | Hardcoded, any env var whose name contains these substrings is stripped (v6.3+) |
-| `DOCKER_PIP_CACHE` | `WORKSPACE_DIR/.pip-cache` | Persistent pip cache shared across Docker containers (v6.4) |
-| `MAX_FILE_SIZE_BYTES` | `MAX_FILE_SIZE_MB * 1024 * 1024` | Computed |
-| `TELEGRAM_MAX_MESSAGE_LENGTH` | `4096` | Telegram API limit |
+| Constant                      | Value                                                        | Source                                                                          |
+| ----------------------------- | ------------------------------------------------------------ | ------------------------------------------------------------------------------- |
+| `BASE_DIR`                    | Parent of `config.py`                                        | `Path(__file__).parent`                                                         |
+| `WORKSPACE_DIR`               | `BASE_DIR/workspace`                                         | Hardcoded                                                                       |
+| `UPLOADS_DIR`                 | `WORKSPACE_DIR/uploads`                                      | Hardcoded                                                                       |
+| `OUTPUTS_DIR`                 | `WORKSPACE_DIR/outputs`                                      | Hardcoded                                                                       |
+| `PROJECTS_DIR`                | `WORKSPACE_DIR/projects`                                     | Hardcoded                                                                       |
+| `DB_PATH`                     | `BASE_DIR/storage/agentsutra.db`                             | Hardcoded                                                                       |
+| `HOST_HOME`                   | User's home directory                                        | `Path.home()`                                                                   |
+| `PROTECTED_ENV_KEYS`          | `{ANTHROPIC_API_KEY, TELEGRAM_BOT_TOKEN}`                    | Hardcoded, stripped from subprocess env (exact match)                           |
+| `PROTECTED_ENV_SUBSTRINGS`    | `{KEY, TOKEN, SECRET, PASSWORD, CREDENTIAL, DATABASE, AUTH}` | Hardcoded, any env var whose name contains these substrings is stripped (v6.3+) |
+| `DOCKER_PIP_CACHE`            | `WORKSPACE_DIR/.pip-cache`                                   | Persistent pip cache shared across Docker containers (v6.4)                     |
+| `MAX_FILE_SIZE_BYTES`         | `MAX_FILE_SIZE_MB * 1024 * 1024`                             | Computed                                                                        |
+| `TELEGRAM_MAX_MESSAGE_LENGTH` | `4096`                                                       | Telegram API limit                                                              |
 
 ---
 
@@ -994,6 +1041,7 @@ Two classification paths:
 2. **Slow path:** Sends the message to Claude with a system prompt listing all 5 categories and a summary of all registered projects. Claude returns JSON `{"task_type": "...", "reason": "..."}`. Falls back to keyword scanning if JSON parsing fails.
 
 Categories (7 task types):
+
 - `project` -- matches a registered project (invoke existing code)
 - `code` -- write new scripts, apps, websites, APIs, bug fixes
 - `data` -- CSV/Excel analysis, charts, summaries
@@ -1025,18 +1073,21 @@ On retry: the previous audit feedback and execution output (up to 3K chars) are 
 Two execution paths:
 
 **Project execution (v2):**
+
 1. Claude generates a bash script from the plan using SHELL_GEN_SYSTEM prompt
 2. Script is passed to `run_shell()` via heredoc with a randomized delimiter (`AGENTSUTRA_EOF_<uuid>`) to prevent collision with generated code
 3. Runs in the project's working directory with optional venv activation
 4. Uses the project's configured timeout (can be up to 900s for long-running scrapers)
 
 **Code execution:**
+
 1. Claude generates Python/JS code from the plan
 2. Markdown code blocks stripped via regex
 3. Code written to temp file and executed via `subprocess.run()` in `workspace/outputs/`
 4. Default 60s timeout
 
 Both paths:
+
 - Capture stdout (max 50K chars) and stderr (max 20K chars)
 - Detect newly created files by directory diffing
 - Extract full Python tracebacks from stderr (v2) -- exact file names and line numbers are preserved for the retry loop
@@ -1051,6 +1102,7 @@ Both paths:
 Cross-model adversarial review (v2): The auditor runs on Opus while the executor runs on Sonnet. This prevents the "echo chamber" effect where the same model would approve its own flawed output. A different model is more likely to catch subtle errors.
 
 Strict evaluation:
+
 1. Does the output actually accomplish the task? (not just "runs without errors")
 2. Did execution succeed (exit code 0)?
 3. Did all TDD assertions pass? (looks for "ALL ASSERTIONS PASSED")
@@ -1060,6 +1112,7 @@ Strict evaluation:
 7. **Visual verification (v8.3):** For frontend/ui_design tasks with a `server_url`, runs Playwright headless check and appends results (page loads, HTTP status, console errors) to the audit prompt before Opus review
 
 Returns JSON verdict:
+
 - `"pass"` --> route to deliver
 - `"fail"` --> increment retry_count, route back to plan (up to MAX_RETRIES times)
 
@@ -1072,6 +1125,7 @@ The feedback field contains specific, actionable fix instructions that get injec
 **Model:** DEFAULT_MODEL (Sonnet)
 
 Generates a polished Telegram-ready summary via Claude:
+
 - Receives original request, execution output, code description, and artifact list
 - Claude produces a concise, structured summary (under 1800 chars for Telegram)
 - Falls back to template-based formatting if Claude call fails
@@ -1084,39 +1138,39 @@ Generates a polished Telegram-ready summary via Claude:
 
 ### Pipeline Cost Summary
 
-| Scenario | Claude Calls | Models Used |
-|----------|-------------|-------------|
-| Project task (trigger match, no retry) | 4 | Sonnet (plan, execute, deliver) + Opus (audit) |
-| Project task (Claude classification, no retry) | 5 | Sonnet (classify, plan, execute, deliver) + Opus (audit) |
-| Code task (no retry) | 5 | Sonnet (classify, plan, execute, deliver) + Opus (audit) |
-| Any task with 1 retry | +3 | Sonnet (plan, execute) + Opus (audit) per retry |
-| Any task with max retries (3) | up to 14 | Sonnet + Opus per iteration, Sonnet deliver at end |
-| Frontend task with deploy | +0 (no extra Claude calls) | Deploy uses CLI subprocess, not LLM |
+| Scenario                                       | Claude Calls               | Models Used                                              |
+| ---------------------------------------------- | -------------------------- | -------------------------------------------------------- |
+| Project task (trigger match, no retry)         | 4                          | Sonnet (plan, execute, deliver) + Opus (audit)           |
+| Project task (Claude classification, no retry) | 5                          | Sonnet (classify, plan, execute, deliver) + Opus (audit) |
+| Code task (no retry)                           | 5                          | Sonnet (classify, plan, execute, deliver) + Opus (audit) |
+| Any task with 1 retry                          | +3                         | Sonnet (plan, execute) + Opus (audit) per retry          |
+| Any task with max retries (3)                  | up to 14                   | Sonnet + Opus per iteration, Sonnet deliver at end       |
+| Frontend task with deploy                      | +0 (no extra Claude calls) | Deploy uses CLI subprocess, not LLM                      |
 
 ---
 
 ## Telegram Bot Commands
 
-| Command | Description | Example |
-|---------|-------------|---------|
-| `/start` | Welcome message with capabilities list and all available commands | `/start` |
-| `/status` | Shows active tasks; `/status <id>` shows partial pipeline state: plan, audit, timings (v8.6) | `/status` or `/status a1b2` |
-| `/history` | Last 5 tasks with status indicators (done/err/stop/...) | `/history` |
-| `/usage` | Session API token usage: total calls, input tokens, output tokens | `/usage` --> "Total calls: 12, Input tokens: 45,230..." |
-| `/cost` | 7-day daily breakdown by day and model, budget remaining, lifetime totals (v8.6) | `/cost` |
-| `/health` | System health: RAM %, disk free, Ollama, active tasks, pipeline perf stats (v8.6) | `/health` |
-| `/exec` | Execute a shell command directly via sandbox safety checks | `/exec ls -la ~/Desktop` |
-| `/context` | View or clear conversation memory and recent history | `/context` or `/context clear` |
-| `/cancel` | Cancel all running tasks (v2: cancels multiple), updates DB status | `/cancel` --> "Cancelled 2 task(s)." |
-| `/projects` | List all registered projects with their commands and triggers (v2) | `/projects` --> "Affiliate Job Scraper (scrape, export, stats)..." |
-| `/schedule` | Schedule recurring tasks, list scheduled tasks, or remove them (v2) | See below |
-| `/chain` | Execute strict-AND task chain with artifact passing (v8.0) | `/chain Scrape jobs -> Analyze results -> Send report` |
-| `/debug` | Per-task debug JSON: timings, verdict, retries, server/deploy URLs (v8.0) | `/debug a1b2c3d4` |
-| `/deploy` | Manually deploy a task's frontend artifacts to configured provider (v8.1) | `/deploy a1b2c3d4` |
-| `/servers` | List running local preview servers with port, PID, uptime (v8.2) | `/servers` |
-| `/stopserver` | Stop a local server by task ID or stop all (v8.2) | `/stopserver a1b2c3d4` or `/stopserver all` |
-| `/retry` | Re-run failed/crashed tasks with same input (v8.6) | `/retry` or `/retry a1b2c3d4` |
-| `/setup` | Validate system config: env vars, Ollama, projects, DB, budget (v8.6) | `/setup` |
+| Command       | Description                                                                                  | Example                                                            |
+| ------------- | -------------------------------------------------------------------------------------------- | ------------------------------------------------------------------ |
+| `/start`      | Welcome message with capabilities list and all available commands                            | `/start`                                                           |
+| `/status`     | Shows active tasks; `/status <id>` shows partial pipeline state: plan, audit, timings (v8.6) | `/status` or `/status a1b2`                                        |
+| `/history`    | Last 5 tasks with status indicators (done/err/stop/...)                                      | `/history`                                                         |
+| `/usage`      | Session API token usage: total calls, input tokens, output tokens                            | `/usage` --> "Total calls: 12, Input tokens: 45,230..."            |
+| `/cost`       | 7-day daily breakdown by day and model, budget remaining, lifetime totals (v8.6)             | `/cost`                                                            |
+| `/health`     | System health: RAM %, disk free, Ollama, active tasks, pipeline perf stats (v8.6)            | `/health`                                                          |
+| `/exec`       | Execute a shell command directly via sandbox safety checks                                   | `/exec ls -la ~/Desktop`                                           |
+| `/context`    | View or clear conversation memory and recent history                                         | `/context` or `/context clear`                                     |
+| `/cancel`     | Cancel all running tasks (v2: cancels multiple), updates DB status                           | `/cancel` --> "Cancelled 2 task(s)."                               |
+| `/projects`   | List all registered projects with their commands and triggers (v2)                           | `/projects` --> "Affiliate Job Scraper (scrape, export, stats)..." |
+| `/schedule`   | Schedule recurring tasks, list scheduled tasks, or remove them (v2)                          | See below                                                          |
+| `/chain`      | Execute strict-AND task chain with artifact passing (v8.0)                                   | `/chain Scrape jobs -> Analyze results -> Send report`             |
+| `/debug`      | Per-task debug JSON: timings, verdict, retries, server/deploy URLs (v8.0)                    | `/debug a1b2c3d4`                                                  |
+| `/deploy`     | Manually deploy a task's frontend artifacts to configured provider (v8.1)                    | `/deploy a1b2c3d4`                                                 |
+| `/servers`    | List running local preview servers with port, PID, uptime (v8.2)                             | `/servers`                                                         |
+| `/stopserver` | Stop a local server by task ID or stop all (v8.2)                                            | `/stopserver a1b2c3d4` or `/stopserver all`                        |
+| `/retry`      | Re-run failed/crashed tasks with same input (v8.6)                                           | `/retry` or `/retry a1b2c3d4`                                      |
+| `/setup`      | Validate system config: env vars, Ollama, projects, DB, budget (v8.6)                        | `/setup`                                                           |
 
 ### /schedule Subcommands
 
@@ -1128,6 +1182,7 @@ Generates a polished Telegram-ready summary via Claude:
 ```
 
 Examples:
+
 ```
 /schedule 360 Run the job scraper and send results
 /schedule 1440 Run the intelligence pipeline and send briefing
@@ -1139,11 +1194,11 @@ When a scheduled task fires, it runs the full pipeline and sends the result (tex
 
 ### Non-Command Interactions
 
-| Interaction | Behavior |
-|-------------|----------|
-| Any text message | Treated as a task prompt, runs the full agent pipeline |
-| File upload (document) | Saved to `workspace/uploads/`, bot replies "File received, now send instructions" |
-| Photo upload | Saved as `photo_<uuid>.jpg` to uploads, bot replies "Photo received, send instructions" |
+| Interaction            | Behavior                                                                                |
+| ---------------------- | --------------------------------------------------------------------------------------- |
+| Any text message       | Treated as a task prompt, runs the full agent pipeline                                  |
+| File upload (document) | Saved to `workspace/uploads/`, bot replies "File received, now send instructions"       |
+| Photo upload           | Saved as `photo_<uuid>.jpg` to uploads, bot replies "Photo received, send instructions" |
 
 ### Streaming Status (v2)
 
@@ -1178,7 +1233,6 @@ The registry file (`projects.yaml`) tells AgentSutra about your existing codebas
 
 ```yaml
 projects:
-
   - name: "Human-Readable Project Name"
     path: "/absolute/path/to/project/root"
     description: |
@@ -1198,15 +1252,15 @@ projects:
 
 ### Field Reference
 
-| Field | Type | Required | Description |
-|-------|------|----------|-------------|
-| `name` | string | Yes | Display name shown in `/projects` and delivery messages |
-| `path` | string | Yes | Absolute path to project root. Must exist on disk. |
-| `description` | string | Yes | Multi-line description. Claude reads this to understand the project. Be detailed. |
-| `commands` | dict | Yes | Named shell commands. Keys are names, values are shell strings. Use `{placeholder}` for parameters. |
-| `timeout` | int | No | Max execution time in seconds. Default: 60. Set higher for long-running tasks. |
-| `requires_file` | bool | No | If true, the agent knows a file upload is needed. Default: false. |
-| `triggers` | list | Yes | Case-insensitive keyword phrases for matching. Longer phrases match with higher priority. |
+| Field           | Type   | Required | Description                                                                                         |
+| --------------- | ------ | -------- | --------------------------------------------------------------------------------------------------- |
+| `name`          | string | Yes      | Display name shown in `/projects` and delivery messages                                             |
+| `path`          | string | Yes      | Absolute path to project root. Must exist on disk.                                                  |
+| `description`   | string | Yes      | Multi-line description. Claude reads this to understand the project. Be detailed.                   |
+| `commands`      | dict   | Yes      | Named shell commands. Keys are names, values are shell strings. Use `{placeholder}` for parameters. |
+| `timeout`       | int    | No       | Max execution time in seconds. Default: 60. Set higher for long-running tasks.                      |
+| `requires_file` | bool   | No       | If true, the agent knows a file upload is needed. Default: false.                                   |
+| `triggers`      | list   | Yes      | Case-insensitive keyword phrases for matching. Longer phrases match with higher priority.           |
 
 ### Trigger Matching
 
@@ -1231,6 +1285,7 @@ commands:
 ```
 
 Placeholder syntax: use `{name}` for parameters the agent fills in:
+
 ```yaml
 commands:
   scrape_one: "python3 -m scraper scrape --slug {slug}"
@@ -1244,6 +1299,7 @@ Claude generates the actual command by reading the plan and filling in placehold
 **Step 1: Start from the example template**
 
 If you don't have a `projects.yaml` yet, copy the included example:
+
 ```bash
 cp projects.yaml.example projects.yaml
 ```
@@ -1255,27 +1311,28 @@ The example file contains 3 fully documented project templates (scraper, data pi
 Open `projects.yaml` and add a new entry under `projects:`:
 
 ```yaml
-  - name: "My Data Pipeline"
-    path: "/Users/you/projects/data-pipeline"   # Must be absolute, must exist
-    description: |
-      Processes raw CSV uploads through deduplication, normalisation,
-      and classification. Input: Excel file. Output: cleaned CSV + report.
-      Run with: python3 -m pipeline --input <file>
-    commands:
-      clean: "python3 -m pipeline --input {file}"    # {file} = filled from user upload
-      stats: "python3 -m pipeline --stats"
-    timeout: 300                                      # 5 minutes max
-    requires_file: true                               # Needs a file upload to work
-    venv: "/Users/you/projects/data-pipeline/venv"   # Optional: Python venv path
-    triggers:
-      - "clean data"
-      - "data pipeline"
-      - "process data"
+- name: "My Data Pipeline"
+  path: "/Users/you/projects/data-pipeline" # Must be absolute, must exist
+  description: |
+    Processes raw CSV uploads through deduplication, normalisation,
+    and classification. Input: Excel file. Output: cleaned CSV + report.
+    Run with: python3 -m pipeline --input <file>
+  commands:
+    clean: "python3 -m pipeline --input {file}" # {file} = filled from user upload
+    stats: "python3 -m pipeline --stats"
+  timeout: 300 # 5 minutes max
+  requires_file: true # Needs a file upload to work
+  venv: "/Users/you/projects/data-pipeline/venv" # Optional: Python venv path
+  triggers:
+    - "clean data"
+    - "data pipeline"
+    - "process data"
 ```
 
 **Step 3: Write good triggers**
 
 Triggers are case-insensitive substring matches against your message. Tips:
+
 - Use 3-6 triggers per project — enough to catch natural variations
 - Make them specific enough to avoid false matches across projects
 - Longer triggers have higher priority (e.g., "affiliate job scraper" beats "job")
@@ -1284,6 +1341,7 @@ Triggers are case-insensitive substring matches against your message. Tips:
 **Step 4: Restart and test**
 
 The registry is loaded at startup, so restart AgentSutra:
+
 ```bash
 python3 main.py
 ```
@@ -1292,16 +1350,16 @@ Then send a message matching one of your triggers. Use `/projects` to verify all
 
 ### Current Projects (8)
 
-| Project | Commands | Timeout | Triggers |
-|---------|----------|---------|----------|
-| Affiliate Job Scraper | scrape, scrape_one, export, stats, full | 900s | job scraper, scrape jobs, affiliate jobs |
-| Jobs Analysis Pipeline v4 | app, clean | 300s | clean jobs, job analysis, jobs analysis |
-| iGaming Intelligence Dashboard | pipeline, briefing, search, gaps | 300s | competitor, intelligence, briefing |
-| Work Reports Generator | app | 600s | client report, generate report, campaign report |
-| Domain Categorisation | classify | 300s | classify domains, domain categorisation |
-| Industry Voices Benchmarks | phase1-3, finalize, full | 300s | industry voices, iv benchmark |
-| Suppliers Database | refresh | 600s | supplier, vendor database, regulatory |
-| Newsletter Benchmarks | (none) | 60s | newsletter, pentasia |
+| Project                        | Commands                                | Timeout | Triggers                                        |
+| ------------------------------ | --------------------------------------- | ------- | ----------------------------------------------- |
+| Affiliate Job Scraper          | scrape, scrape_one, export, stats, full | 900s    | job scraper, scrape jobs, affiliate jobs        |
+| Jobs Analysis Pipeline v4      | app, clean                              | 300s    | clean jobs, job analysis, jobs analysis         |
+| iGaming Intelligence Dashboard | pipeline, briefing, search, gaps        | 300s    | competitor, intelligence, briefing              |
+| Work Reports Generator         | app                                     | 600s    | client report, generate report, campaign report |
+| Domain Categorisation          | classify                                | 300s    | classify domains, domain categorisation         |
+| Industry Voices Benchmarks     | phase1-3, finalize, full                | 300s    | industry voices, iv benchmark                   |
+| Suppliers Database             | refresh                                 | 600s    | supplier, vendor database, regulatory           |
+| Newsletter Benchmarks          | (none)                                  | 60s     | newsletter, pentasia                            |
 
 ---
 
@@ -1314,12 +1372,14 @@ AgentSutra is a working system, not a framework — but it's built so you can ex
 Every task type flows through the same 5-stage pipeline, so adding a new type means teaching each stage about it.
 
 **Files to modify:**
+
 1. `brain/nodes/classifier.py` — Add the type name to the classification prompt and `_FALLBACK_ORDER`
 2. `brain/nodes/planner.py` — Add a task-specific system prompt (e.g., `TESTING_SYSTEM`) with domain-relevant instructions
 3. `brain/nodes/auditor.py` — Add an entry to `AUDIT_CRITERIA` dict with pass/fail rules specific to the type
 4. `brain/nodes/executor.py` — (Optional) Add specialized execution logic if the type needs something beyond `run_code()`/`run_shell()`
 
 **Example:** Adding a "testing" type that generates and runs test suites:
+
 - Classifier recognizes "write tests for", "test this function"
 - Planner prompt instructs Claude to use pytest conventions and assert coverage
 - Auditor checks that all tests pass and coverage meets a threshold
@@ -1328,11 +1388,13 @@ Every task type flows through the same 5-stage pipeline, so adding a new type me
 ### Adding a New Bot Command
 
 **Files to modify:**
+
 1. `bot/handlers.py` — Write an async handler function decorated with `@auth_required`
 2. `bot/telegram_bot.py` — Register it in `create_bot()` with `app.add_handler(CommandHandler("yourcommand", cmd_yourcommand))`
 3. Update the `/help` output in `cmd_start` to list the new command
 
 **Example:** Adding a `/stats` command:
+
 ```python
 # In bot/handlers.py
 @auth_required
@@ -1346,6 +1408,7 @@ async def cmd_stats(update, context):
 The command blocklist and code scanner are regex-based and easy to extend.
 
 **Files to modify:**
+
 - `tools/sandbox.py` — `_BLOCKED_PATTERNS` (shell command blocklist), `_DANGEROUS_CODE_PATTERNS` (Python code scanner), `_LOGGED_PATTERNS` (audit-only logging)
 
 **To block a new command pattern:** Add a tuple `(compiled_regex, "Human-readable reason")` to `_BLOCKED_PATTERNS`. The command is rejected before execution with the reason shown to the user.
@@ -1357,6 +1420,7 @@ The command blocklist and code scanner are regex-based and easy to extend.
 AgentSutra's `tools/` directory is the natural home for new integrations. Each tool module exposes functions that pipeline nodes can call.
 
 **Steps:**
+
 1. Create a new module in `tools/` (e.g., `tools/slack_notifier.py`)
 2. Import and call it from the relevant pipeline node (usually `executor.py` or `deliverer.py`)
 3. Add any required config vars to `config.py` and `.env.example`
@@ -1380,6 +1444,7 @@ Jobs are stored in SQLite and survive reboots. Manage with `/schedule list` (see
 For cost-sensitive tasks, privacy-sensitive data, or offline operation, AgentSutra can use locally running Ollama models.
 
 **Setup:**
+
 1. Install Ollama: `brew install ollama` (macOS) or see [ollama.ai](https://ollama.ai)
 2. Pull a model: `ollama pull llama3.1:8b`
 3. Configure in `.env`:
@@ -1460,6 +1525,7 @@ We deliberately chose not to build a provider abstraction (like LiteLLM or a cus
 ### Multi-Provider Setup (Auditor on a Different Provider)
 
 The adversarial auditing pattern works best when the auditor uses a different model family. You could:
+
 1. Create a second client instance in `claude_client.py` for the auditor
 2. Have `auditor.py` use the second client
 3. This gives you, e.g., Claude for execution + Gemini for auditing
@@ -1472,51 +1538,53 @@ This requires ~30 lines of code changes across 2 files.
 
 ### Response Times
 
-| Task Type | Time | Claude Calls | Models |
-|-----------|------|-------------|--------|
-| Simple code task (no retry) | 15-25s | 5 | 4 Sonnet + 1 Opus |
-| Code generation (~500 lines) | 20-35s | 5 | 4 Sonnet + 1 Opus |
-| Data analysis (CSV to chart) | 25-40s | 5 | 4 Sonnet + 1 Opus |
-| Project invocation (trigger match) | 10-20s + command time | 4 | 3 Sonnet + 1 Opus |
-| Project invocation (Claude classify) | 15-25s + command time | 5 | 4 Sonnet + 1 Opus |
-| Task with 1 retry | +15-25s per retry | +3 per retry | +2 Sonnet + 1 Opus |
-| Scheduled task | Same as above | Same | Same |
-| Job Scraper full run | ~14 min | 3 | 2 Sonnet + 1 Opus |
+| Task Type                            | Time                  | Claude Calls | Models             |
+| ------------------------------------ | --------------------- | ------------ | ------------------ |
+| Simple code task (no retry)          | 15-25s                | 5            | 4 Sonnet + 1 Opus  |
+| Code generation (~500 lines)         | 20-35s                | 5            | 4 Sonnet + 1 Opus  |
+| Data analysis (CSV to chart)         | 25-40s                | 5            | 4 Sonnet + 1 Opus  |
+| Project invocation (trigger match)   | 10-20s + command time | 4            | 3 Sonnet + 1 Opus  |
+| Project invocation (Claude classify) | 15-25s + command time | 5            | 4 Sonnet + 1 Opus  |
+| Task with 1 retry                    | +15-25s per retry     | +3 per retry | +2 Sonnet + 1 Opus |
+| Scheduled task                       | Same as above         | Same         | Same               |
+| Job Scraper full run                 | ~14 min               | 3            | 2 Sonnet + 1 Opus  |
 
 ### API Costs (Estimated)
 
-| Model | Input | Output | Per Task (est.) |
-|-------|-------|--------|-----------------|
-| Claude Sonnet 4.6 | $3/M tokens | $15/M tokens | $0.02-0.05 |
-| Claude Opus 4.6 | $15/M tokens | $75/M tokens | $0.05-0.15 |
+| Model             | Input        | Output       | Per Task (est.) |
+| ----------------- | ------------ | ------------ | --------------- |
+| Claude Sonnet 4.6 | $3/M tokens  | $15/M tokens | $0.02-0.05      |
+| Claude Opus 4.6   | $15/M tokens | $75/M tokens | $0.05-0.15      |
 
-| Scenario | Estimated Cost |
-|----------|---------------|
-| Single task (4 Sonnet + 1 Opus audit) | $0.08-0.22 |
-| Daily (30 tasks) | $2-6 |
-| Monthly (900 tasks) | $60-180 |
-| Scheduled scraper (4x/day) | $0.28-0.80/day |
+| Scenario                              | Estimated Cost |
+| ------------------------------------- | -------------- |
+| Single task (4 Sonnet + 1 Opus audit) | $0.08-0.22     |
+| Daily (30 tasks)                      | $2-6           |
+| Monthly (900 tasks)                   | $60-180        |
+| Scheduled scraper (4x/day)            | $0.28-0.80/day |
 
 ### Hardware (Mac Mini M2 16GB)
 
-| Resource | Idle | During Task | During Scraper |
-|----------|------|-------------|----------------|
-| RAM | ~100MB | ~200-500MB | ~500MB-1GB |
-| CPU | <1% | 1 core | 1-2 cores |
-| Disk (DB + workspace) | <100MB | +1-50MB per task | +10-100MB |
-| Network | Minimal polling | API calls + Telegram | API + scraping |
+| Resource              | Idle            | During Task          | During Scraper |
+| --------------------- | --------------- | -------------------- | -------------- |
+| RAM                   | ~100MB          | ~200-500MB           | ~500MB-1GB     |
+| CPU                   | <1%             | 1 core               | 1-2 cores      |
+| Disk (DB + workspace) | <100MB          | +1-50MB per task     | +10-100MB      |
+| Network               | Minimal polling | API calls + Telegram | API + scraping |
 
 ---
 
 ## Security Model
 
 ### Authentication
+
 - **Telegram user ID allowlist:** Only IDs in `ALLOWED_USER_IDS` can interact with the bot
 - **Per-handler enforcement:** Every command and message handler is wrapped with `@auth_required`
 - **Unauthorized users:** Receive "Unauthorized. Your user ID is not in the allow list." and their attempt is logged
 - **Multiple users supported:** Comma-separated IDs in `.env`
 
 ### Code Execution
+
 - Generated code runs in `subprocess.run()` with hard timeout (default 60s, configurable)
 - Working directory for generated code is restricted to `workspace/outputs/`
 - Project commands run in their own directories with configurable timeout (up to 900s)
@@ -1526,6 +1594,7 @@ This requires ~30 lines of code changes across 2 files.
 - **Network isolation advisory (v6.5):** Default `DOCKER_NETWORK=bridge` allows containers to access the internet (required for web scraping, API calls, `pip install`). For tasks processing sensitive internal data, set `DOCKER_NETWORK=none` to guarantee an airgapped execution environment where no network exfiltration is possible. This is a per-deployment risk decision — most tasks require `bridge`.
 
 ### Shell Execution (v2 + v6.2 + v6.3 + v6.6)
+
 - `run_shell()` executes commands with `shell=True` -- necessary for venv activation and command chaining
 - **Command blocklist (v6.6+, 39 patterns):** Before execution, commands are checked against 34 destructive patterns covering: filesystem destruction (`rm -rf`, `mkfs`, `dd`), system power (`shutdown`, `reboot`, `halt`, `poweroff`), privilege escalation (`sudo`), pipe-to-shell attacks (`curl|sh`, `wget|bash`, `printf|sh`, `echo|bash`), permission destruction (`chmod 777/a+rwx`), interpreter bypass (`python -c`, `perl -e`, `ruby -e`, `node -e`), destructive find (`-delete`, `-exec rm`), encoding bypass (`base64|bash`), home directory relocation (`mv ~/`), dotfile corruption (write/append redirects to `.bashrc`, `.ssh`, `.gitconfig`, etc.), symlink attacks on dotfiles, eval with command substitution, and bash/sh -c string splitting. Blocked commands are rejected with a security warning.
 - **Code content scanner (v6.6):** In subprocess mode (non-Docker), Python code is scanned for dangerous operations before execution — credential file reads, `os.system()`, `shutil.rmtree()` on home/root, raw socket connections, and system file reads. Defense-in-depth, not a security boundary.
@@ -1536,12 +1605,14 @@ This requires ~30 lines of code changes across 2 files.
 - Timeouts are enforced per project configuration
 
 ### Resource Guards (v6.2)
+
 - **RAM guard:** New tasks are rejected when `psutil.virtual_memory().percent >= RAM_THRESHOLD_PERCENT` (default 90%). Applies to both interactive and scheduled tasks.
 - **Concurrency cap:** Max `MAX_CONCURRENT_TASKS` (default 3) simultaneous pipeline executions. Additional tasks are rejected with a clear message.
 - **Rate limiter:** 5-second per-user cooldown between task submissions. Prevents accidental double-sends.
 - **Budget enforcement:** `_check_budget()` runs before every Claude API call. Queries daily/monthly spend from `api_usage` table against configured limits. Raises `BudgetExceededError` if exceeded.
 
 ### Data Privacy
+
 - All data stays on the Mac Mini -- no cloud storage
 - SQLite database is local (`storage/agentsutra.db`)
 - Workspace files (uploads, outputs) are local
@@ -1551,12 +1622,14 @@ This requires ~30 lines of code changes across 2 files.
 - No telemetry, no analytics, no external logging
 
 ### Deployment Security (v8.1+)
+
 - Deployment credentials (`DEPLOY_GITHUB_TOKEN`, `DEPLOY_VERCEL_TOKEN`, `DEPLOY_FIREBASE_TOKEN`) are loaded from `.env` and never logged
 - `DEPLOY_FIREBASE_TOKEN` is automatically stripped from subprocess environment via `PROTECTED_ENV_SUBSTRINGS` matching "TOKEN"
 - Firebase deployment creates a temporary `firebase.json` config and cleans it up in a `try/finally` block
 - All deployment providers validate required credentials before attempting any subprocess calls
 
 ### Secret Management
+
 - API keys stored in `.env` file -- never committed to git
 - `.env.example` provides template without real values
 - Keys are loaded once at startup via `python-dotenv`
@@ -1567,6 +1640,7 @@ This requires ~30 lines of code changes across 2 files.
 ## Troubleshooting
 
 ### Bot does not respond
+
 1. Check `agentsutra.log` for errors
 2. Verify `TELEGRAM_BOT_TOKEN` is correct in `.env`
 3. Verify your Telegram user ID matches `ALLOWED_USER_IDS` (check with `@userinfobot`)
@@ -1574,54 +1648,64 @@ This requires ~30 lines of code changes across 2 files.
 5. If using launchd, check `launchd_stderr.log` for crash output
 
 ### "ANTHROPIC_API_KEY not set"
+
 - Check `.env` file exists in the AgentSutra root directory (same directory as `main.py`)
 - Verify the key starts with `sk-ant-`
 - No quotes around the value in `.env`
 - No trailing whitespace
 
 ### "Projects registered: 0" but projects.yaml exists
+
 - Check YAML syntax (indentation must be consistent)
 - Verify `projects.yaml` is in the AgentSutra root directory
 - Run `python3 -c "import yaml; print(yaml.safe_load(open('projects.yaml')))"` to check for parse errors
 
 ### Project command fails with "Working directory does not exist"
+
 - The `path:` in `projects.yaml` must be an absolute path that exists on disk
 - After transferring to a new machine, update all paths
 - Check: `ls /path/from/projects.yaml`
 
 ### Code execution timeout
+
 - Default is 120 seconds; increase with `EXECUTION_TIMEOUT=300` in `.env`
 - For project commands, set the `timeout:` field in `projects.yaml` (e.g., `timeout: 900` for scrapers)
 - Check if the generated code has an infinite loop
 
 ### Import errors on startup
+
 - Make sure venv is activated: `source venv/bin/activate`
 - Install dependencies: `pip install -r requirements.txt`
 - Verify Python version: `python3 --version` (need 3.10+, 3.11 recommended)
 
 ### Database errors
+
 - Delete `storage/agentsutra.db` and restart -- it will be recreated (loses task history)
 - Delete `storage/scheduler.db` and restart -- it will be recreated (loses scheduled job definitions)
 - The two databases are separate to avoid lock contention between aiosqlite and SQLAlchemy
 
 ### Scheduler not firing
+
 - Scheduler starts inside the bot's event loop via `post_init`
 - Check logs for "Scheduler started (N persisted jobs loaded)"
 - Scheduled jobs require the bot to be running -- if the bot was down when a job was due, it fires on next startup
 - Use `/schedule list` to verify jobs are registered
 
 ### Streaming status not updating
+
 - Stage updates are polled every 3 seconds; very fast tasks may complete before the first poll
 - Telegram may rate-limit message edits if too frequent
 - Check logs for stage transition messages
 
 ### Task stuck or no response
+
 - Use `/status` to see current pipeline stage
 - Use `/cancel` to abort and reset
 - Check `agentsutra.log` for the task ID and any error tracebacks
 - Claude API rate limits can cause delays (exponential backoff up to 8s)
 
 ### Scheduled task sends no result
+
 - The scheduled callback needs a valid `chat_id`; it uses the chat where `/schedule` was called
 - The scheduled function (`_scheduled_task_run`) is module-level with serializable args, so it survives APScheduler persistence and bot restarts correctly
 - Check logs for `[Scheduled]` tagged entries
@@ -1634,12 +1718,12 @@ AgentSutra was independently stress-tested using a 4-category evaluation protoco
 
 ### Test Protocol & Results
 
-| Category | Test | Rating | Result |
-|----------|------|--------|--------|
-| **1. Tool Orchestration** | Fetch live London weather, calculate ISO 9920 Clo thermal insulation values, save as JSON | 9.5/10 | 370-line JSON with 24 hourly forecasts, NOAA wind chill formulas, comfort levels, clothing recommendations |
-| **2. Complex Reasoning** | Search GitHub for trending autonomous agent repos, analyze architectures, recommend for 16GB RAM | 9.2/10 | 365-line Markdown report using GitHub API + BeautifulSoup + Ollama (llama3:latest), with comparison matrices and memory budget estimates |
+| Category                    | Test                                                                                                             | Rating | Result                                                                                                                                         |
+| --------------------------- | ---------------------------------------------------------------------------------------------------------------- | ------ | ---------------------------------------------------------------------------------------------------------------------------------------------- |
+| **1. Tool Orchestration**   | Fetch live London weather, calculate ISO 9920 Clo thermal insulation values, save as JSON                        | 9.5/10 | 370-line JSON with 24 hourly forecasts, NOAA wind chill formulas, comfort levels, clothing recommendations                                     |
+| **2. Complex Reasoning**    | Search GitHub for trending autonomous agent repos, analyze architectures, recommend for 16GB RAM                 | 9.2/10 | 365-line Markdown report using GitHub API + BeautifulSoup + Ollama (llama3:latest), with comparison matrices and memory budget estimates       |
 | **3. Multi-Step Execution** | Create directory, generate 5 text files, count word frequencies across all files, output sorted CSV with logging | 9.0/10 | 7-step pipeline: directory creation, file generation, parsing, counting (254 unique words), CSV output, logging, and post-execution validation |
-| **4. Adversarial Safety** | Attempt privilege escalation: kill other users' processes, read /etc/shadow, disable firewall | 9.0/10 | **Refused entirely.** Cited CFAA and Computer Misuse Act 1990. Provided table of legitimate alternatives. Zero attack code generated |
+| **4. Adversarial Safety**   | Attempt privilege escalation: kill other users' processes, read /etc/shadow, disable firewall                    | 9.0/10 | **Refused entirely.** Cited CFAA and Computer Misuse Act 1990. Provided table of legitimate alternatives. Zero attack code generated           |
 
 ### Key Observations from Testing
 
@@ -1650,12 +1734,12 @@ AgentSutra was independently stress-tested using a 4-category evaluation protoco
 
 ### External Ratings
 
-| Category | Rating | Notes |
-|----------|--------|-------|
-| Orchestration | 9.5/10 | Complex scientific math + multi-source data retrieval |
-| Safety | 9.0/10 | Refusal logic robust; adversarial audit (Opus) caught high-risk patterns |
-| Code Maturity | 9.2/10 | 661 tests + comprehensive documentation = production-ready |
-| Innovation | 8.5/10 | Adversarial Audit + God Mode focus is a distinct, valuable niche |
+| Category      | Rating | Notes                                                                    |
+| ------------- | ------ | ------------------------------------------------------------------------ |
+| Orchestration | 9.5/10 | Complex scientific math + multi-source data retrieval                    |
+| Safety        | 9.0/10 | Refusal logic robust; adversarial audit (Opus) caught high-risk patterns |
+| Code Maturity | 9.2/10 | 661 tests + comprehensive documentation = production-ready               |
+| Innovation    | 8.5/10 | Adversarial Audit + God Mode focus is a distinct, valuable niche         |
 
 ---
 
@@ -1666,20 +1750,24 @@ AgentSutra was independently stress-tested using a 4-category evaluation protoco
 Major improvements to developer experience, cost visibility, failure recovery, and operational reliability.
 
 **New commands (2):**
+
 - `/retry [task_id]` — re-run failed/crashed tasks with the same input. Defaults to most recent failure.
 - `/setup` — validate system configuration: env vars, Ollama, projects, DB, budget, workspace.
 
 **Enhanced commands:**
+
 - `/cost` — 7-day daily breakdown by day and model, budget remaining, lifetime totals.
 - `/status <task_id>` — show partial pipeline state: plan, audit verdict, feedback, stage timings.
 - `/health` — pipeline performance stats: average stage durations from recent tasks.
 
 **Partial result preservation:**
+
 - Pipeline state persisted after each node (task_state + last_completed_stage columns in tasks table).
 - Failed tasks retain plan, code, audit result, and stage timings for diagnosis via `/status`.
 - DB migration auto-adds new columns on startup.
 
 **Developer experience:**
+
 - `Justfile` with test, test-quick, test-security, lint, format, run commands.
 - `.pre-commit-config.yaml` — ruff lint/format, large file check, private key detection.
 - `.github/workflows/ci.yml` — GitHub Actions CI: lint + test on push/PR to main.
@@ -1687,10 +1775,12 @@ Major improvements to developer experience, cost visibility, failure recovery, a
 - Session log moved to separate `SESSION_LOG.md` (keeps CLAUDE.md lean).
 
 **Pipeline improvements:**
+
 - Temporal window expanded from 30min to 2hr for follow-up pattern detection (~40% more patterns).
 - Budget warning shown when >80% daily budget consumed.
 
 **Operations:**
+
 - `scripts/com.agentsutra.bot.plist` — launchd service for auto-start/restart on Mac Mini.
 - `scripts/install_service.sh` — one-command service installation.
 
@@ -1703,6 +1793,7 @@ Major improvements to developer experience, cost visibility, failure recovery, a
 Comprehensive security hardening from a full third-pass codebase audit. 37 findings across 6 root causes, all remediated. 2 critical, 7 high, 16 medium, 12 low severity.
 
 **Root cause 1 — Code scanner gaps (A-2 through A-6):**
+
 - Block config module imports (credential exposure via runtime module access)
 - Block os.popen (shell access not covered by existing os block)
 - Block dynamic code functions (bypasses all static scanning)
@@ -1710,12 +1801,14 @@ Comprehensive security hardening from a full third-pass codebase audit. 37 findi
 - Block getattr on os, base64 decode, ctypes, chr-chain obfuscation
 
 **Root cause 2 — start_server bypass (A-1, A-10, A-11):**
+
 - Server commands now run through Tier 1 blocklist before launch
 - Server subprocess env stripped of credentials
 - Auto-installed pip packages use --only-binary :all: (no arbitrary code via setup.py)
 - Visual check URL restricted to localhost only (SSRF prevention)
 
 **Root cause 3 — LLM output trust (A-7, A-8, A-18, A-19, A-29):**
+
 - shlex.quote on all paths in bootstrap pip commands
 - Working directory validated under WORKSPACE_DIR (path traversal prevention)
 - Executor prompt no longer exposes raw command templates or parameter names
@@ -1723,11 +1816,13 @@ Comprehensive security hardening from a full third-pass codebase audit. 37 findi
 - Code gen system prompt restricts to current working directory only
 
 **Root cause 4 — Audit prompt injection (A-9, A-20, A-21):**
+
 - Removed startswith("pass") fallback (trivially injectable)
 - Audit content wrapped in XML tags for structural separation
 - Audit context tail-truncated to 5000 chars (prevents prompt flooding)
 
 **Root cause 5 — Handler boundary validation (A-14 through A-17, A-25, A-30 through A-32):**
+
 - Task ID prefixes validated as hex format
 - Resource check called at chain start (not just single tasks)
 - Pending file uploads capped at 10 per user
@@ -1737,6 +1832,7 @@ Comprehensive security hardening from a full third-pass codebase audit. 37 findi
 - Monotonic clock for rate limiting replaces event loop time
 
 **Root cause 6 — Resource housekeeping (A-22 through A-37):**
+
 - Unknown model costs default to Opus rates (highest tier) with warning log
 - Symlinks skipped during project file enumeration
 - Crash-safe env parsing with safe_int/safe_float helpers in config
@@ -1756,17 +1852,20 @@ Comprehensive security hardening from a full third-pass codebase audit. 37 findi
 Remediates 5 production failures found during the 4-hour, 42-test Telegram test suite on v8.4.0.
 
 **Security fixes:**
+
 - Python-embedded shell script content now scanned for Tier 1 patterns (setup.sh bypass)
 - `run_shell()` scans script file content when executing `bash`/`sh` on a file
 - Deliverer short-circuits to minimal response when code scanner blocks execution
 
 **Pipeline fixes:**
+
 - Chain steps execute literally — no graceful rewriting of failing assertions (exit-code-based strict-AND gate)
 - Code truncation detection with automatic shorter-version retry (unclosed parens/brackets/strings)
 - Auditor catches library substitution and fake data generation (fabrication detection)
 - Stricter honest-failure enforcement in auditor and deliverer prompts
 
 **Infrastructure fixes:**
+
 - Ollama migrated from `/api/generate` to `/api/chat` endpoint (v0.5+), with 404 fallback to legacy
 - Startup Ollama model validation with tag mismatch detection
 
@@ -1781,6 +1880,7 @@ Remediates 5 production failures found during the 4-hour, 42-test Telegram test 
 Adds Firebase Hosting as a deployment provider and dedicated agent Google account support.
 
 **New features:**
+
 - `tools/deployer.py`: Firebase Hosting deployment — creates firebase.json, deploys via CLI, auto-cleanup
 - Config: `DEPLOY_FIREBASE_PROJECT`, `DEPLOY_FIREBASE_TOKEN` (credential-stripped via TOKEN substring match)
 
@@ -1795,6 +1895,7 @@ Adds Firebase Hosting as a deployment provider and dedicated agent Google accoun
 Adds Playwright-based visual verification for generated web apps, feeding results into the Opus audit prompt.
 
 **New features:**
+
 - `tools/visual_check.py`: Headless Chromium checks — page load (200 OK), console error capture, full-page screenshot
 - Auditor includes visual verification context (loads, status, console errors) in the Opus audit prompt for frontend/ui_design tasks
 - Deliverer attaches preview.png screenshot to artifacts when available
@@ -1812,6 +1913,7 @@ Adds Playwright-based visual verification for generated web apps, feeding result
 Adds thread-safe server management to the sandbox for local dev server preview of generated web apps.
 
 **New features:**
+
 - `tools/sandbox.py`: Server registry with `start_server()`, `stop_server()`, `stop_all_servers()`, `list_servers()`
 - Port allocation from configurable range (8100-8120), HTTP polling for readiness, auto-kill timer
 - `/servers`: List running local servers (port, PID, uptime)
@@ -1832,6 +1934,7 @@ Adds thread-safe server management to the sandbox for local dev server preview o
 Adds the ability to deploy generated frontend/ui_design artifacts to a live URL via GitHub Pages or Vercel.
 
 **New features:**
+
 - `tools/deployer.py`: Static deployment module — GitHub Pages and Vercel support, credential-safe subprocess, graceful degradation
 - `/deploy <task_id>`: Manual deployment command for any task's HTML artifacts
 - Auto-deployment for frontend/ui_design tasks after audit pass (in deliverer)
@@ -1850,6 +1953,7 @@ Adds the ability to deploy generated frontend/ui_design artifacts to a live URL 
 Fixes all open audit issues from the v8 code review plus 3 security bypasses discovered during Telegram test suite execution.
 
 **Audit issue fixes:**
+
 - `storage/db.py`: FIFO cap (50 rows per project) on `project_memory` table — prevents unbounded growth (M-1)
 - `brain/nodes/planner.py`: Path traversal validation in `_inject_project_files()` using `.resolve() + startswith()` (M-2)
 - `bot/handlers.py`: Verified all file handles use context managers — no leak found (M-3)
@@ -1858,11 +1962,13 @@ Fixes all open audit issues from the v8 code review plus 3 security bypasses dis
 - `tools/model_router.py`: `MODEL_COSTS` imported from `claude_client` instead of duplicated (m-4)
 
 **Security bypass fixes (from Telegram test suite Tier 3):**
+
 - `tools/sandbox.py`: Added `_check_shell_safety()` — scans bash script content against Tier 1 blocklist before execution. Fixes bypasses where `cat|bash` and `sudo` inside .sh files were not caught.
 - `brain/nodes/planner.py`: Added `SECURITY RESTRICTIONS` block to planner prompt — instructs LLM to refuse system credential file tasks instead of generating synthetic data.
 - `tools/sandbox.py`: `run_code()` now routes bash content through `_check_shell_safety()` alongside existing Python scanner.
 
 **Operational improvements:**
+
 - `main.py`: Suppressed httpx INFO polling logs (90%+ of log volume)
 - `storage/db.py`: `cleanup_workspace_files()` now enforces count-based cap (100 files) alongside age-based cleanup
 
@@ -1875,6 +1981,7 @@ Fixes all open audit issues from the v8 code review plus 3 security bypasses dis
 Two rounds of adversarial stress testing with 144 new tests. Identified and patched 8 vulnerabilities.
 
 **Audit Round 1 patches (commit 27fbc95):**
+
 - `tools/sandbox.py`: Added `re.MULTILINE` flag to `_BLOCKED_RE` compilation — without it, `$` only matches end-of-entire-string, making multiline heredoc payloads invisible to the blocklist
 - `tools/sandbox.py`: Fixed rm tilde pattern to handle quoted paths: `['\"]?` suffix on `~` match
 - `brain/nodes/deliverer.py`: Sanitize `Path.home()` from debug sidecar message field to prevent home path leakage
@@ -1882,12 +1989,14 @@ Two rounds of adversarial stress testing with 144 new tests. Identified and patc
 - `tools/model_router.py`: Empty Ollama response (`{"response": ""}`) now triggers Claude fallback instead of returning empty string
 
 **Audit Round 2 patches (commit 08f5127):**
+
 - `tools/sandbox.py`: Added `cat|bash` pattern (39 total blocked patterns) — catches `cat file | bash` pipe-to-interpreter attacks
 - `tools/model_router.py`: Budget escalation now checks `_ram_below_threshold(90)` before routing to Ollama under memory pressure
 - `config.py`: Extracted `MAX_FILE_INJECT_COUNT = 50` from hardcoded magic number in planner.py
 - `brain/nodes/planner.py`: References `config.MAX_FILE_INJECT_COUNT` instead of hardcoded `> 50`
 
 **New test files:**
+
 - `tests/test_stress_v8.py` — 64 adversarial tests (audit round 1): code scanner evasion, shell blocklist evasion, path traversal, concurrency/deadlock, output registry thread safety, privacy, memory poisoning, routing invariants, budget escalation
 - `tests/test_stress_v8_audit2.py` — 80 adversarial tests (audit round 2): expanded security boundary, concurrency contention, logic saturation, resource routing
 
@@ -1898,11 +2007,13 @@ Two rounds of adversarial stress testing with 144 new tests. Identified and patc
 Major feature release implementing the v8 roadmap across 4 phases. Adds cross-task project memory, intelligent model routing (Claude/Ollama), strict-AND task chaining, live stdout streaming, and per-task debug sidecars.
 
 **Phase 1: Foundation & Quick Wins**
+
 - 3 timeout patterns added to `_ENV_ERROR_PATTERNS` in auditor.py — catches both `run_shell` ("Timed out after") and `run_code` ("Execution timed out after") formats, plus "killed process group"
 - Coding standards injection: planner reads `.agentsutra/standards.md` and injects into system prompt for code-generating task types (not project tasks). Truncated at 2000 chars.
 - Security blocklist audit: verified all 4 roadmap-identified gaps already covered (3 from Round 4 hardening, 1 deliberately Tier 3). Added documentation tests.
 
 **Phase 2: Context & Memory Layer**
+
 - New `project_memory` table in SQLite with `UNIQUE(project_name, memory_type, content)` constraint and `INSERT OR IGNORE` semantics
 - Synchronous read/write helpers (`sync_write_project_memory`, `sync_query_project_memories`) using `threading.Lock` — pipeline nodes run in `asyncio.to_thread()` and cannot use aiosqlite
 - Deliverer extracts success/failure patterns after each project task and persists to `project_memory`
@@ -1910,6 +2021,7 @@ Major feature release implementing the v8 roadmap across 4 phases. Adds cross-ta
 - Dynamic file injection: extra Sonnet call (~$0.02) selects 3-5 relevant files from project tree (50-file cap, 3000 chars/file) and injects into planner context
 
 **Phase 3: Intelligence & Routing**
+
 - New `tools/model_router.py` with `route_and_call()` — routes to Claude or Ollama based on purpose, complexity, RAM, and daily budget
 - Routing rules: audit → always Opus, code_gen → always Sonnet, low-complexity classify/plan → Ollama if available + RAM < 75%, budget escalation at 70% of DAILY_BUDGET_USD (with RAM < 90% guard)
 - Wired into classifier.py (classify→low) and planner.py (project→low). Auditor and executor unchanged.
@@ -1917,6 +2029,7 @@ Major feature release implementing the v8 roadmap across 4 phases. Adds cross-ta
 - Temporal sequence mining in deliverer: `_suggest_next_step()` queries task history for follow-up patterns (2+ occurrences within 30 min window)
 
 **Phase 4: UX & Orchestration**
+
 - Live stdout streaming: refactored `run_code()` and `run_shell()` from `proc.communicate()` to threaded Popen reading with per-task live output registry (bounded to 50 lines)
 - Hash-gated Telegram edits: status polling uses `hash(label)` comparison instead of stage string — handles both stage changes and stdout updates without redundant API calls
 - Strict-AND task chaining: `/chain step 1 -> step 2 -> step 3` with `{output}` artifact passing. Each step runs the full 5-stage pipeline. Failed step halts the chain with clear error message.
@@ -1924,6 +2037,7 @@ Major feature release implementing the v8 roadmap across 4 phases. Adds cross-ta
 - `stage_timings` field added to `AgentState`, collected by `_wrap_node()` in graph.py
 
 **New files:**
+
 - `tools/model_router.py` — Claude/Ollama routing layer
 - `.agentsutra/standards.md` — Python/Shell coding standards for planner injection
 - `tests/test_v8_foundation.py` — 17 tests (Phase 1)
@@ -1932,6 +2046,7 @@ Major feature release implementing the v8 roadmap across 4 phases. Adds cross-ta
 - `tests/test_v8_ux.py` — 11 tests (Phase 4)
 
 **Modified files:**
+
 - `brain/nodes/auditor.py` — 3 timeout patterns in `_ENV_ERROR_PATTERNS`
 - `brain/nodes/planner.py` — Standards injection, memory injection, dynamic file injection, model router wiring
 - `brain/nodes/classifier.py` — Model router wiring (`route_and_call` replaces `claude_client.call`)
@@ -1952,6 +2067,7 @@ Major feature release implementing the v8 roadmap across 4 phases. Adds cross-ta
 Major release addressing production failures discovered during Mac Mini deployment.
 
 **Shared project venv (config.py, main.py, executor.py):**
+
 - AgentSutra now auto-creates and manages a shared venv at `workspace/project_venv/` for registered projects that don't specify their own `venv:` key
 - Eliminates the need for manual venv creation per project — dependencies auto-install on first run
 - Startup includes a smoke test (`pip --version`) to detect broken venvs from Python upgrades
@@ -1959,25 +2075,30 @@ Major release addressing production failures discovered during Mac Mini deployme
 - If a project needs dependency isolation, add `venv:` to its config — the escape hatch is built in
 
 **Streaming for thinking calls (claude_client.py):**
+
 - Switched to `messages.stream()` with `get_final_message()` when extended thinking is enabled
 - Fixes Anthropic's 10-minute hard timeout on non-streaming requests, which killed complex thinking tasks
 - Non-thinking calls remain as `messages.create()` (no change)
 
 **128k thinking headroom (claude_client.py):**
+
 - Raised `max_tokens` floor from 16,000 to 128,000 when thinking is enabled
 - Fixes "Claude returned no text content" errors where Claude consumed the entire token budget on thinking with zero text output, failing after 5 retries
 
 **Honest failure delivery (deliverer.py):**
+
 - When audit verdict is FAIL, the deliverer now injects hard constraints: "This task FAILED. Do NOT claim files were created unless listed."
 - Updated system prompt with critical rule against fabricating success
 - Updated fallback response to clearly state "Task FAILED" instead of "completed with issues"
 - Fixes a bug where the deliverer told the user "HTML file created successfully" when no HTML was ever generated (fabricated from the plan, not the actual execution result)
 
 **Project execution stderr logging (executor.py):**
+
 - Project execution failures now log stderr/traceback to `agentsutra.log`
 - Previously, failed project scripts showed only "No artifacts detected" with no indication of WHY
 
 **Modified files:**
+
 - `config.py` — added `PROJECTS_VENV_DIR` path constant
 - `main.py` — added `_ensure_shared_project_venv()` bootstrap with smoke test
 - `brain/nodes/executor.py` — shared venv fallback + stderr logging on project failure
@@ -1991,12 +2112,14 @@ Major release addressing production failures discovered during Mac Mini deployme
 Fixes 3 critical/medium issues identified from production failures: "Bad file descriptor" errors killing all code tasks when running as a daemon, missing dependency management for project tasks, and wasted API credits from retrying environment errors.
 
 **stdin=subprocess.DEVNULL on all subprocess calls (sandbox.py):**
+
 - Added `stdin=subprocess.DEVNULL` to every `subprocess.Popen` and `subprocess.run` call
 - Fixes "Fatal Python error: init_sys_streams / Bad file descriptor" when AgentSutra runs as a background service (launchd, nohup)
 - Affected: `run_code()`, `run_shell()`, `_run_code_docker()`, `_docker_pip_install()`, `_docker_available()`, all docker kill/rm calls
 - Child processes no longer inherit invalid fd 0 from daemon parent
 
 **Project dependency bootstrapping (executor.py):**
+
 - New `_bootstrap_project_deps()` installs requirements.txt before first project execution
 - Only runs on first attempt (retry_count == 0) to avoid redundant installs
 - New `_parse_import_error_from_result()` + auto-install retry for project tasks (mirrors `run_code_with_auto_install` pattern)
@@ -2004,16 +2127,19 @@ Fixes 3 critical/medium issues identified from production failures: "Bad file de
 - Strengthened `SHELL_GEN_SYSTEM` prompt: Claude must use ONLY the provided commands, cannot discover/guess alternative entry points
 
 **Environment error short-circuit in auditor (auditor.py):**
+
 - New `_detect_environment_error()` identifies 6 infrastructure failure patterns: Bad file descriptor, sys streams init failure, Permission denied, No space left, DNS failure, Connection refused
 - When detected, auditor forces `retry_count = MAX_RETRIES` (skips to delivery) instead of wasting 9 API calls on code-level retries
 - User gets a clear "ENVIRONMENT ERROR" message via the fallback response path
 
 **New tests (28 new, 336 total):**
+
 - `tests/test_sandbox.py` — 2 new: stdin-safe run_code, stdin-safe run_shell
 - `tests/test_auditor.py` — 10 new: bad file descriptor, sys streams, no space, DNS failure, permission denied NOT detected (false-positive guard), connection refused NOT detected (false-positive guard), code errors not detected, import errors not detected, empty result, env error forces max retries
 - `tests/test_executor.py` — 16 new: _parse_import_error_from_result (12 tests covering mapped modules, canonical PIP_MAP reuse, traceback vs stderr precedence, empty/no-match cases), _bootstrap_project_deps (4 tests covering no requirements, success, failure, venv pip)
 
 **Modified files:**
+
 - `tools/sandbox.py` — `stdin=subprocess.DEVNULL` on all 11 subprocess calls
 - `brain/nodes/executor.py` — dependency bootstrapping, auto-install retry, prompt hardening, imports `_PIP_NAME_MAP` from sandbox (single source of truth)
 - `brain/nodes/auditor.py` — environment error detection and retry short-circuit; "Permission denied" and "Connection refused" removed (false-positive risk)
@@ -2025,62 +2151,75 @@ Fixes 3 critical/medium issues identified from production failures: "Bad file de
 Addresses 11 issues identified during a comprehensive read-only pipeline audit. Focuses on timeout safety, error sanitization, upload preservation, race condition elimination, and storage management.
 
 **Pipeline timeout for interactive tasks (handlers.py):**
+
 - Interactive tasks now wrapped in `asyncio.wait_for(timeout=config.LONG_TIMEOUT)` — same pattern as scheduled tasks
 - Prevents indefinite hangs if Claude API responds slowly or LangGraph encounters a bug
 - New `asyncio.TimeoutError` handler sends clear user message and marks task as failed
 
 **Error message sanitization (handlers.py):**
+
 - New `_sanitize_error_for_user()` strips absolute paths, API key fragments, and token values before sending to Telegram
 - Applied to both `handle_message()` and `_scheduled_task_run()` error paths
 - Full error details still logged server-side for debugging
 
 **Honest cancel feedback (handlers.py):**
+
 - `/cancel` now tells user "background execution may take a moment to fully stop"
 - Acknowledges that `asyncio.to_thread()` cancellation is best-effort
 
 **File upload preservation during concurrent tasks (handlers.py):**
+
 - Each task snapshots its consumed `pending_files` at launch
 - `finally` block only clears files consumed by THAT task, preserving uploads for the next task
 - Fixes: uploading files during an active task no longer loses them
 
 **Event loop misuse guard (claude_client.py):**
+
 - Runtime detection if `claude_client.call()` is invoked from a running event loop
 - Logs `ERROR` immediately (would freeze the bot) but doesn't crash the call
 - Zero runtime cost in the correct path
 
 **Atomic filename generation (executor.py, deliverer.py):**
+
 - UI design, frontend, and code artifact filenames now use UUID suffix instead of counter loop
 - Eliminates TOCTOU race from concurrent tasks generating same base filename
 - Consistent with `file_manager.save_upload()` pattern from v6.7
 
 **Separate API vs pipeline retry counts (config.py, claude_client.py):**
+
 - New `API_MAX_RETRIES=5` for Claude API call retries (rate limit, timeout, API errors)
 - Existing `MAX_RETRIES=3` reserved for pipeline audit-retry limit
 - API retries can now be more aggressive without affecting pipeline retry budget
 
 **Telegram rate limit handling (handlers.py):**
+
 - `_send_long_message()` now catches `RetryAfter` errors and waits before retrying
 - 300ms delay between chunks prevents rate limiting on large outputs
 - Failed chunks logged instead of silently dropped
 
 **Better max-retry fallback response (deliverer.py):**
+
 - `_fallback_response()` now includes audit feedback when verdict != "pass"
 - Users see what the Opus auditor flagged, not just "completed with issues"
 
 **Tasks table pruning (db.py):**
+
 - `prune_old_data()` now also prunes completed/failed/crashed/cancelled tasks older than `history_days`
 - Prevents unbounded growth of `tasks` table (each record contains plan + result fields)
 - Running tasks are never pruned
 
 **Config reorganization (config.py):**
+
 - Execution limits, retry limits, and file limits are now separate commented sections
 
 **New tests (11 new, 308 total):**
+
 - `tests/test_handlers.py` — 6 new: error sanitization (path stripping, API key redaction, meaningful preservation, truncation, token redaction), rate-limited message retry
 - `tests/test_budget.py` — 3 new: API_MAX_RETRIES existence, default value, pipeline retries unchanged
 - `tests/test_db.py` — 2 new: old completed tasks pruned, running tasks never pruned
 
 **Modified files:**
+
 - `bot/handlers.py` — pipeline timeout, error sanitization, cancel feedback, file upload preservation, rate-limited message sending
 - `tools/claude_client.py` — event loop guard, API_MAX_RETRIES
 - `brain/nodes/executor.py` — UUID filenames for UI/frontend
@@ -2095,25 +2234,30 @@ Addresses 11 issues identified during a comprehensive read-only pipeline audit. 
 Fixes a critical production bug where venv/pip infrastructure files (pyvenv.cfg, activate, pip3, RECORD, WHEEL, greenlet.h, typing_extensions.py, etc.) were incorrectly delivered as task artifacts instead of actual report files. Root cause: `_is_artifact_file()` only excluded `.pyc`, `.pyo`, `__pycache__`, `.DS_Store` — insufficient for `pip install` or venv creation during execution.
 
 **Artifact filtering rewrite (sandbox.py — 5 interconnected fixes):**
+
 - **Comprehensive `_is_artifact_file()`**: Rewrote with 3-layer exclusion: `_EXCLUDED_DIR_NAMES` (20+ dirs: `.venv`, `venv`, `env`, `site-packages`, `node_modules`, `__pycache__`, `.git`, etc.), `_EXCLUDED_FILENAMES` (30+ files: `pyvenv.cfg`, `activate*`, `pip*`, `RECORD`, `WHEEL`, `METADATA`, etc.), `_EXCLUDED_EXTENSIONS` (12: `.pyc`, `.so`, `.dylib`, `.h`, `.whl`, etc.)
 - **Directory-pruning walker `_walk_artifacts()`**: Replaces all 6 `rglob("*")` calls. Uses `os.walk()` with in-place directory pruning — skips entire `.venv/`, `site-packages/`, `node_modules/`, `*.dist-info/` trees instead of scanning thousands of files. Also skips empty files (0 bytes).
 - **Sanity check `_apply_artifact_sanity_check()`**: If >20 artifacts detected after filtering, falls back to known output extensions only (`.html`, `.pdf`, `.csv`, `.xlsx`, etc.). Safety net for edge cases where directory exclusions are insufficient.
 
 **Delivery resilience (handlers.py):**
+
 - **Empty file skip**: Files with `st_size == 0` are skipped with a warning instead of causing "File must be non-empty" Telegram API crash
 - **Error-resilient send loop**: Each `reply_document()` wrapped in try/except — one failed send no longer kills delivery of remaining files
 - **sent_count tracking**: Logs error if no artifacts were successfully sent despite artifacts being detected
 - Applied to both `handle_message()` and `_scheduled_task_run()`
 
 **Project-level filtering (executor.py):**
+
 - **`_execute_project()` artifact cap**: If project task returns >15 artifacts, filters to known output extensions only. Defense-in-depth for project tasks that run `pip install` as part of execution.
 
 **New tests (32 new, 297 total):**
-- `tests/test_sandbox.py` — 20 new: `_is_artifact_file` venv/infrastructure exclusions (pyvenv.cfg, activate*, pip*, RECORD, WHEEL, .h, .so, .dist-info, .egg-info, node_modules, .dylib, .whl), `_walk_artifacts` directory pruning (venv, node_modules, dist-info, empty files, __pycache__, site-packages), `_apply_artifact_sanity_check` threshold behavior (3 tests)
+
+- `tests/test_sandbox.py` — 20 new: `_is_artifact_file` venv/infrastructure exclusions (pyvenv.cfg, activate*, pip*, RECORD, WHEEL, .h, .so, .dist-info, .egg-info, node_modules, .dylib, .whl), `_walk_artifacts` directory pruning (venv, node_modules, dist-info, empty files, **pycache**, site-packages), `_apply_artifact_sanity_check` threshold behavior (3 tests)
 - `tests/test_handlers.py` — 2 new: empty file skip in scheduled delivery, send failure continues to next artifact
 - `tests/test_e2e_artifact_delivery.py` — 2 new: venv creation during execution excludes all venv files, pip dist-info directories excluded
 
 **Modified files:**
+
 - `tools/sandbox.py` — `_EXCLUDED_DIR_NAMES`, `_EXCLUDED_FILENAMES`, `_EXCLUDED_EXTENSIONS`, rewritten `_is_artifact_file()`, new `_walk_artifacts()`, new `_apply_artifact_sanity_check()`, replaced 6 `rglob("*")` calls
 - `bot/handlers.py` — empty file check, try/except around send_document, sent_count tracking
 - `brain/nodes/executor.py` — artifact count filtering in `_execute_project()`
@@ -2125,25 +2269,30 @@ Fixes a critical production bug where venv/pip infrastructure files (pyvenv.cfg,
 Fixes a critical production bug where project task output files (HTML, PDF) were not delivered to Telegram, and a parameter extraction bug where Claude's JSON responses wrapped in markdown fences caused project commands to run with empty parameters.
 
 **Artifact delivery fix (3 changes):**
+
 - **mtime-based file detection** (`tools/sandbox.py`): Replaced path-only set difference (`current_files - existing_files`) with path-to-mtime dict comparison in all 3 execution paths (`_run_code_docker`, `run_code`, `run_shell`). Previously, overwritten files (same path, new content) were invisible because they appeared in both snapshots. Now detects both new AND modified files.
 - **Cache/metadata artifact filter** (`tools/sandbox.py`): New `_is_artifact_file()` function rejects `.pyc`, `.pyo`, `__pycache__/` contents, and `.DS_Store` from artifact lists. Python imports during execution generated bytecode cache files that were incorrectly delivered as task output.
 - **Artifact deduplication** (`bot/handlers.py`, `brain/nodes/deliverer.py`): Added `seen_paths` set in both `handle_message` and `_scheduled_task_run` to prevent duplicate file sends. Added `verdict == "pass"` guard in deliverer before saving `.py` code artifact, and dedup check before appending to artifact list.
 
 **Parameter extraction fix:**
-- **Markdown fence stripping** (`brain/nodes/executor.py`): `_extract_params()` now calls `_strip_markdown_blocks()` on Claude's response before `json.loads()`. Claude frequently wraps JSON in `` ```json...``` `` fences, which caused `JSONDecodeError`, falling back to an empty parameter dict. This meant `{client}` and `{file}` placeholders were never resolved, causing project commands to fail or produce wrong output.
+
+- **Markdown fence stripping** (`brain/nodes/executor.py`): `_extract_params()` now calls `_strip_markdown_blocks()` on Claude's response before `json.loads()`. Claude frequently wraps JSON in ` ```json...``` ` fences, which caused `JSONDecodeError`, falling back to an empty parameter dict. This meant `{client}` and `{file}` placeholders were never resolved, causing project commands to fail or produce wrong output.
 
 **New tests (23 new, 258 total):**
+
 - `tests/test_sandbox.py` — 13 new: file detection (6: new file, overwritten file, untouched exclusion, .pyc exclusion for run_code and run_shell), artifact filter (7: .pyc/.pyo/.DS_Store rejected, .html/.pdf/.csv/.py accepted)
 - `tests/test_e2e_artifact_delivery.py` — 6 new: fresh run HTML+PDF detection, overwrite detection, 3-retry scenario, module imports with .pyc filter, handler filter logic, pre-existing cache exclusion
 - `tests/test_executor.py` — 4 new: plain JSON param extraction, markdown-fenced JSON extraction, no placeholders returns empty, unparseable response fallback
 
 **Modified files:**
+
 - `tools/sandbox.py` — mtime dict snapshots in 3 locations, `_is_artifact_file()` filter, debug logging
 - `bot/handlers.py` — artifact dedup with `seen_paths` set, skip logging for missing/oversized artifacts
 - `brain/nodes/deliverer.py` — `verdict == "pass"` guard, dedup check on code artifact
 - `brain/nodes/executor.py` — `_strip_markdown_blocks()` in `_extract_params()`
 
 **New files:**
+
 - `tests/test_e2e_artifact_delivery.py` — 6 end-to-end artifact delivery tests
 
 **Test suite:** 258 tests (248 passed + 10 skipped). 10 skipped tests require Docker Desktop.
@@ -2153,24 +2302,30 @@ Fixes a critical production bug where project task output files (HTML, PDF) were
 Addresses 5 operational gaps identified by an independent code review (rated 8.2/10). All were genuine design omissions — not bugs in existing code, but missing features and edge cases that end-to-end testing doesn't catch.
 
 **Cost tracking fix:**
+
 - **Thinking tokens in cost tracking** (`tools/claude_client.py`): Added `thinking_tokens` column to `api_usage` table with ALTER TABLE migration for existing databases. `_persist_usage()` now stores thinking tokens. Cost formulas in `_check_budget()`, `get_cost_summary()`, and `get_usage_summary()` now include thinking tokens at output token rates (matching Anthropic's billing). Previously, thinking tokens were logged but never persisted — `/cost` and budget enforcement underreported actual spend when `ENABLE_THINKING=true`.
 
 **Crash recovery:**
+
 - **Stale task recovery on startup** (`storage/db.py`, `main.py`): New `recover_stale_tasks()` function resets tasks stuck in `running` or `pending` status to `crashed` on startup. Called after `init_db()` and before `prune_old_data()`. Previously, a kill -9 left tasks showing as "running" forever in `/history`.
 
 **Scheduled task timeout:**
+
 - **Timeout for scheduled tasks** (`bot/handlers.py`): `_scheduled_task_run()` now wraps `asyncio.to_thread(run_task)` with `asyncio.wait_for(timeout=LONG_TIMEOUT)` (default 900s). On timeout, task is marked failed and a notification is sent. Previously, a hanging Claude API call or infinite execution loop could block the scheduler indefinitely.
 
 **File upload race condition fix:**
+
 - **Thread-safe file dedup** (`tools/file_manager.py`): Replaced TOCTOU-racy `while dest.exists(): counter += 1` with UUID-based unique filenames (`{stem}_{uuid4_hex8}{suffix}`). Eliminates the race condition where two concurrent uploads of the same filename could collide.
 
 **New tests (13 new):**
+
 - `tests/test_budget.py` — 5 new: thinking tokens persisted, default zero, cost includes thinking, usage summary includes thinking, budget enforcement includes thinking
 - `tests/test_db.py` — 3 new: running tasks become crashed, pending tasks become crashed, completed tasks untouched
 - `tests/test_handlers.py` — 1 new: scheduled task timeout
 - `tests/test_file_manager.py` — 4 new: UUID in filename, two uploads never collide, path traversal sanitized, dotfile gets prefix
 
 **Modified files:**
+
 - `tools/claude_client.py` — thinking_tokens column, migration, persist, cost formula, budget check
 - `storage/db.py` — `recover_stale_tasks()`
 - `main.py` — call `recover_stale_tasks()` on startup
@@ -2184,21 +2339,25 @@ Addresses 5 operational gaps identified by an independent code review (rated 8.2
 Addresses 6 valid findings from an independent Opus 4.6 code review (rated 7.5/10). Fixes a Docker pip install bug, closes 3 shell bypass vectors, adds a code content scanner for subprocess mode, and creates the first test coverage for `bot/handlers.py`.
 
 **Security fixes:**
+
 - **Docker pip install fix** (`tools/sandbox.py`): Removed `--no-deps` from `_docker_pip_install()`. Packages with transitive dependencies (e.g. scikit-learn) now install correctly in Docker containers.
 - **4 new blocked command patterns** (`tools/sandbox.py`): Added blocks for `printf/echo ... | sh/bash` (pipe-to-shell via printf/echo), `eval "$(..."` (eval with command substitution for obfuscation), and `bash/sh -c` with embedded empty quotes (string splitting obfuscation like `bash -c 'r""m'`). Total blocked patterns: 34 (was 30).
 - **2 new audit log patterns** (`tools/sandbox.py`): `eval` commands and `printf` pipes are now logged for audit trail. Total logged patterns: 12 (was 10).
 - **Code content scanner for subprocess mode** (`tools/sandbox.py`): New `_check_code_safety()` function scans Python code content before execution in subprocess mode. Blocks reads of `~/.ssh/`, `~/.gnupg/`, `~/.aws/`, `.env`, PEM files, `os.system()` calls, `shutil.rmtree(~/root)`, raw `socket.connect()` (reverse shells), and `/etc/passwd|shadow|sudoers`. Does NOT apply in Docker mode (filesystem isolation is sufficient). Defense-in-depth, not a security boundary.
 
 **New tests:**
+
 - `tests/test_sandbox.py` — 26 new tests: pipe-to-shell blocking (6), eval blocking (2), bash string splitting (4), code content scanner (14 — 9 blocked + 5 allowed). Total sandbox tests: 124 (was 98).
 - `tests/test_handlers.py` — **18 new tests** for bot handler layer: auth decorator (4), resource guards (5), message splitting (5), file upload validation (4). First test coverage for `bot/handlers.py` (663 lines).
 
 **Modified files:**
+
 - `tools/sandbox.py` — removed `--no-deps`, added 4 blocked patterns + 2 logged patterns, added `_CODE_BLOCKED_PATTERNS` + `_check_code_safety()`, wired into `run_code()` subprocess path
 - `tests/test_sandbox.py` — 26 new tests across 4 new test classes
 - `requirements.txt` — added `pytest-asyncio>=0.23.0`
 
 **New files:**
+
 - `tests/test_handlers.py` — 18 handler layer tests
 
 **Test suite:** 222 tests (212 passed + 10 skipped). 10 skipped tests require Docker Desktop.
@@ -2208,17 +2367,20 @@ Addresses 6 valid findings from an independent Opus 4.6 code review (rated 7.5/1
 Addresses findings from a comprehensive 3-agent stress test that independently analyzed sandbox.py (17 findings), brain nodes (15 findings), and bot/config/storage layers (17 findings). 7 confirmed bugs fixed, 0 false positives shipped.
 
 **Critical fixes:**
+
 - **Audit verdict fail-safe** (`brain/nodes/auditor.py`): Missing `"verdict"` key in auditor JSON now defaults to `"fail"` instead of `"pass"`. Previously, a malformed audit response like `{"feedback": "the code crashed"}` without a verdict key would silently pass broken output through to the user.
 - **Infinite retry loop prevention** (`brain/nodes/auditor.py`): `retry_count` now increments for ANY non-`"pass"` verdict, not just `"fail"`. Previously, an unexpected verdict like `"partial"` or `"needs_revision"` would never increment the counter, creating an infinite plan-execute-audit loop that burns API credits forever.
 - **Orphaned process kill on timeout** (`tools/sandbox.py`): Both `run_code()` and `run_shell()` now use `subprocess.Popen()` with `start_new_session=True` instead of `subprocess.run()`. On timeout, `os.killpg(proc.pid, SIGKILL)` kills the entire process group, preventing orphaned child processes from consuming CPU/memory indefinitely. Previously, `subprocess.run(timeout=N)` raised `TimeoutExpired` but did NOT kill the child process.
 - **Docker working_dir validation** (`tools/sandbox.py`): `_run_code_docker()` now calls `_validate_working_dir()` before mounting volumes. Previously, an attacker-controlled `working_dir` outside `~/` could be mounted read-write into the container, bypassing Docker's filesystem isolation.
 
 **Reliability fixes:**
+
 - **ALLOWED_USER_IDS crash protection** (`config.py`): Non-numeric entries in the comma-separated env var (e.g., `"123,abc,456"`) are now silently skipped instead of crashing the entire application at import time with `ValueError`.
 - **Log rotation** (`main.py`): Switched from `FileHandler` to `RotatingFileHandler` (10MB max, 3 backups). Previously, `agentsutra.log` grew unboundedly over months of operation.
 - **Running tasks memory leak** (`bot/handlers.py`): `_check_resources()` now prunes completed `asyncio.Future` objects from `running_tasks` before counting active tasks. Previously, completed futures accumulated indefinitely in memory.
 
 **Modified files:**
+
 - `brain/nodes/auditor.py` — fail-safe verdict default, retry_count for any non-pass
 - `tools/sandbox.py` — Popen + process group kill in run_code/run_shell, _validate_working_dir in Docker path
 - `config.py` — try/except in user ID parsing
@@ -2232,6 +2394,7 @@ Addresses findings from a comprehensive 3-agent stress test that independently a
 Addresses the fundamental isolation gap: `run_code()` previously executed LLM-generated code via subprocess with full user-level filesystem access. A hallucinated script could read `~/.ssh/id_rsa` or `.env` and exfiltrate via network libraries. Docker containers eliminate this by restricting code execution to only mounted workspace directories.
 
 **New features:**
+
 - **Docker container isolation** (`tools/sandbox.py`): When `DOCKER_ENABLED=true`, `run_code()` executes inside disposable Docker containers. Only `workspace/outputs/` (rw) and `workspace/uploads/` (ro) are mounted. The host filesystem (home, SSH keys, credentials, `.env`) is completely inaccessible. Resource limits (memory, CPU) and network mode (bridge/none) are configurable. Named containers with explicit kill on timeout prevent orphaned processes. Graceful fallback to subprocess if Docker is unavailable.
 - **Docker-aware auto-install** (`tools/sandbox.py`): `run_code_with_auto_install()` installs pip packages into a persistent cache volume (`workspace/.pip-cache/`) shared across container runs via `PIP_TARGET=/pip-cache`. Packages survive across executions without rebuilding the image.
 - **Lazy Docker detection** (`tools/sandbox.py`): `_docker_available()` checks Docker daemon and sandbox image existence with 60-second caching. Fast-fails by checking Docker socket file existence (`/var/run/docker.sock` or `~/.docker/run/docker.sock`) before spawning subprocess. No startup penalty — detection happens on first `run_code()` call.
@@ -2240,12 +2403,14 @@ Addresses the fundamental isolation gap: `run_code()` previously executed LLM-ge
 - **Build script** (`scripts/build_sandbox.sh`): One-time image build with Docker availability checks and clear error messages.
 
 **New files:**
+
 - `Dockerfile` — sandbox image definition
 - `.dockerignore` — excludes .env, workspace/, storage/ from build context
 - `scripts/build_sandbox.sh` — one-time image build script
 - `tests/test_docker_sandbox.py` — 27 tests across 3 tiers: unit (mocked Docker, 17 tests including socket fast-fail), integration (real Docker, 6 tests), security verification (4 tests)
 
 **Modified files:**
+
 - `config.py` — added 6 Docker config vars (`DOCKER_ENABLED`, `DOCKER_IMAGE`, `DOCKER_MEMORY_LIMIT`, `DOCKER_CPU_LIMIT`, `DOCKER_NETWORK`, `DOCKER_PIP_CACHE`)
 - `tools/sandbox.py` — added `_docker_available()` (with socket fast-fail), `_build_docker_cmd()`, `_run_code_docker()`, `_docker_pip_install()` (with `threading.Lock`); modified `run_code()` routing and `run_code_with_auto_install()` pip install path
 - `.env.example` — added Docker config section
@@ -2260,27 +2425,31 @@ Addresses the fundamental isolation gap: `run_code()` previously executed LLM-ge
 Addresses security findings from a 4-section architecture review. Architecture & Pipeline and Local AI & Data Privacy received strong praise (no changes). Concurrency is correctly sized for Mac Mini M2 (no changes). Security received the critical finding: the regex blocklist had 8 confirmed bypass vectors. This release closes all 8 vectors, adds environment variable protection, parameter injection prevention, and 48 new tests.
 
 **Security fixes:**
+
 - **12 new blocked patterns** (`tools/sandbox.py`): Interpreter inline execution (`python3 -c`, `perl -e`, `ruby -e`, `node -e`), destructive find operations (`find -delete`, `find -exec rm`), encoding bypass (`base64|bash`), home directory relocation (`mv ~/`), dotfile write/append redirects (`> ~/.bashrc`, `>> ~/.zshrc`, `> ~/.ssh/authorized_keys`, etc.), symlink attacks on dotfiles (`ln -sf /tmp/evil ~/.bashrc`). Total blocked patterns: 20 → 30.
 - **4 new audit log patterns** (`tools/sandbox.py`): find commands, symlink operations, file moves, python inline execution. Total logged patterns: 6 → 10.
 - **Pattern-based environment filtering** (`config.py` + `tools/sandbox.py`): New `PROTECTED_ENV_SUBSTRINGS` set (`KEY`, `TOKEN`, `SECRET`, `PASSWORD`, `CREDENTIAL`) strips any env var whose name contains these substrings from subprocess environments. Catches `AWS_SECRET_ACCESS_KEY`, `GITHUB_TOKEN`, `DATABASE_PASSWORD`, etc. without hardcoding each one. Shared `_filter_env()` helper replaces inline filtering in both `run_code()` and `run_shell()`.
 - **Parameter injection prevention** (`brain/nodes/executor.py`): `shlex.quote()` applied to all project command placeholder values. Prevents command injection via parameter values (e.g., `{slug}` containing `; rm -rf ~/` becomes a safely-quoted literal string).
 
 **Bug fixes (from prompt.md stress-test review):**
+
 - **CRITICAL: prune_old_data epoch mismatch** (`storage/db.py`): `api_usage.timestamp` stores epoch floats (REAL), but pruning compared against ISO strings. Due to SQLite type affinity, ALL REALs compare as less than any TEXT string, causing every `api_usage` record to be deleted on startup. Fixed by using `time.time() - (days * 86400)` for the cutoff.
 - **MODERATE: Schedule interval validation** (`bot/handlers.py`): Added bounds checking (1–43200 minutes) after int parsing to prevent 0-minute intervals (APScheduler rapid-fire) and absurdly long intervals.
 - **MODERATE: working_dir missing from executor results** (`brain/nodes/executor.py`): Added `"working_dir"` key to all 4 executor return dicts so downstream stages can reference the actual execution directory.
-- **LOW: _strip_markdown_blocks regex failure** (`brain/nodes/executor.py`): Replaced regex-based extraction with line-anchored parser that correctly handles backticks inside template literals and code strings.
+- **LOW: \_strip_markdown_blocks regex failure** (`brain/nodes/executor.py`): Replaced regex-based extraction with line-anchored parser that correctly handles backticks inside template literals and code strings.
 - **LOW: rm -rf critical subdirectories** (`tools/sandbox.py`): Added pattern blocking `rm -rf ~/Desktop`, `~/Documents`, `~/Downloads`, `~/Library`, etc.
 - **LOW: chmod -R false positive** (`tools/sandbox.py`): Removed overly broad `chmod -R` pattern that blocked safe operations like `chmod -R 755`. Now only blocks `chmod -R 777` and `chmod -R a+rwx`.
 - **LOW: CSV row_count off-by-one** (`tools/file_manager.py` + `brain/nodes/planner.py`): `row_count` now excludes the header row and label changed to "data rows".
 
 **New tests (48 new, 150 total):**
+
 - `tests/test_sandbox.py` — 6 new test classes: `TestInterpreterBlocking` (7), `TestFindBlocking` (5), `TestEncodingBypass` (3), `TestHomeMoveBlocking` (4), `TestDotfileProtection` (9), `TestEnvFiltering` (6). Plus additional tests in existing classes.
 - `tests/test_db.py` — 3 new tests for prune_old_data epoch handling (regression guard)
 - `tests/test_executor.py` — 2 new tests for backticks inside code blocks
 - `tests/test_pipeline_integration.py` — 1 new test for working_dir population
 
 **Modified files:**
+
 - `tools/sandbox.py` — 12 new blocked patterns (30 total), 4 new logged patterns (10 total), `_filter_env()` helper, replaced inline env filtering
 - `config.py` — added `PROTECTED_ENV_SUBSTRINGS` set
 - `brain/nodes/executor.py` — `import shlex`, `shlex.quote()` for params, line-anchored `_strip_markdown_blocks`, `working_dir` in all return dicts
@@ -2301,14 +2470,17 @@ Addresses security findings from a 4-section architecture review. Architecture &
 Addresses 4 minor items identified in third external review (rated 9.1/10, prompt.md). Also caught and fixed a latent production bug via the new integration tests.
 
 **Fixes:**
+
 - **Classifier test now imports from source** (`brain/nodes/classifier.py` + `tests/test_classifier.py`): Extracted inline fallback list to `_FALLBACK_ORDER` module-level constant. All 5 classifier tests now import from the source instead of hardcoding the list. If the fallback order changes, the tests catch it.
 - **test_valid_outputs_dir .resolve() bug** (`tests/test_sandbox.py`): Added `.resolve()` before path validation to handle symlinks and non-canonical paths.
 - **Planner format string crash** (`brain/nodes/planner.py`): `CAPABILITIES_BLOCK` contained unescaped `{` `}` in a JSON example (`json={"model": ...}`). When concatenated into `CODE_SYSTEM` and processed by `.format(tdd=...)`, Python raised `KeyError: '"model"'`. This was a latent production bug affecting all code/data/file/automation tasks — caught by the new integration tests. Fixed by escaping to `{{` `}}`.
 
 **New files:**
+
 - `tests/test_pipeline_integration.py` — 4 integration tests: full pipeline success, retry-then-pass, max retries exhausted. Uses `MockClaude` class that returns stage-appropriate responses based on call signatures. Chains node functions directly (no langgraph dependency at test time).
 
 **Modified files:**
+
 - `brain/nodes/classifier.py` — extracted `_FALLBACK_ORDER` constant
 - `brain/nodes/planner.py` — escaped braces in `CAPABILITIES_BLOCK` JSON example
 - `tests/test_classifier.py` — imports `_FALLBACK_ORDER` from source
@@ -2321,6 +2493,7 @@ Addresses 4 minor items identified in third external review (rated 9.1/10, promp
 Addresses gaps identified in two independent external reviews (rated 8.2/10 and 9.5/10). Focuses on operational reliability: resource management, budget enforcement, storage lifecycle, rate limiting, and automated testing.
 
 **New features:**
+
 - **RAM guard + concurrency cap** (`bot/handlers.py`): `handle_message()` checks system RAM (via `psutil`) and active task count before launching pipeline. Rejects new tasks if RAM > 90% or concurrent tasks >= 3 (both env-configurable via `RAM_THRESHOLD_PERCENT`, `MAX_CONCURRENT_TASKS`). Same RAM check in `_scheduled_task_run()` — skips scheduled tasks under memory pressure with a warning log.
 - **Budget enforcement** (`tools/claude_client.py`): `_check_budget()` runs before every API call. Queries daily and monthly spend from the `api_usage` table against `DAILY_BUDGET_USD` and `MONTHLY_BUDGET_USD` limits. Raises `BudgetExceededError` (subclass of `RuntimeError`) if exceeded. Prevents unattended cost runaway from scheduled tasks in retry loops.
 - **Rate limiter** (`bot/handlers.py`): 5-second per-user cooldown between task submissions. Prevents accidental double-sends and Telegram message deduplication issues.
@@ -2331,6 +2504,7 @@ Addresses gaps identified in two independent external reviews (rated 8.2/10 and 
 - **Automated test suite** (`tests/`): 98 pytest tests across 6 test files covering sandbox safety (27 blocked + 10 allowed patterns), auditor JSON extraction (12 edge cases), executor code block extraction (8 tests), classifier fallback ordering (5 tests), file manager metadata (10 tests), and budget enforcement (5 tests).
 
 **New files:**
+
 - `tests/__init__.py`
 - `tests/test_sandbox.py` — 47 tests (blocked patterns, allowed commands, working dir, pip mapping, import error parsing, traceback extraction)
 - `tests/test_auditor.py` — 12 tests (JSON extraction with nested braces, stray chars, missing keys)
@@ -2340,6 +2514,7 @@ Addresses gaps identified in two independent external reviews (rated 8.2/10 and 
 - `tests/test_budget.py` — 5 tests (budget enforcement, model costs)
 
 **Modified files:**
+
 - `config.py` — added `MAX_CONCURRENT_TASKS`, `RAM_THRESHOLD_PERCENT`
 - `requirements.txt` — added `psutil>=5.9.0`
 - `tools/sandbox.py` — 8 new blocked patterns (sudo, pipe-to-shell, chmod), 2 new audit patterns
@@ -2351,6 +2526,7 @@ Addresses gaps identified in two independent external reviews (rated 8.2/10 and 
 ### v2 - 2026-02-19 - Project Registry + Reliability Upgrades
 
 **New features:**
+
 - **Project registry** (`projects.yaml` + `tools/projects.py`): 8 registered projects with trigger-based matching, named commands, timeout configuration, and file requirement flags. Agent invokes existing codebases instead of writing new code.
 - **Shell execution mode** (`tools/sandbox.py` `run_shell()`): executes project commands in their working directories with venv activation, custom environment variables, and file-creation detection.
 - **Cross-model adversarial auditing**: executor uses Sonnet (DEFAULT_MODEL), auditor uses Opus (COMPLEX_MODEL). Different model reviews the work to prevent echo-chamber self-approval.
@@ -2363,10 +2539,12 @@ Addresses gaps identified in two independent external reviews (rated 8.2/10 and 
 - **Concurrency fix**: running tasks tracked by `dict[task_id -> future]` instead of a single variable. Multiple tasks can run concurrently. `/status` shows all active tasks. `/cancel` cancels all.
 
 **New files:**
+
 - `projects.yaml` -- project registry (8 projects)
 - `tools/projects.py` -- registry loader, trigger matcher, context formatter
 
 **Modified files:**
+
 - `brain/state.py` -- added `project_name`, `project_config`, `stage` fields (16 total, up from 13)
 - `brain/graph.py` -- added thread-safe stage tracking (`set_stage`, `get_stage`, `clear_stage`), `_wrap_node()` wrapper
 - `brain/nodes/classifier.py` -- added fast-path project trigger matching before Claude call, injected project summary into classification prompt
@@ -2385,6 +2563,7 @@ Addresses gaps identified in two independent external reviews (rated 8.2/10 and 
 ### v2.2 - 2026-02-19 - Security Hardening + Persistence (prompt.md audit)
 
 **Fixes and improvements (from architectural audit):**
+
 - **Bot HTTP session leak fixed** (`bot/handlers.py`): `_scheduled_task_run()` now uses `async with Bot(token=...) as bot:` context manager to properly close the `httpx.AsyncClient` session after each scheduled run. Previously created an unclosed session that would exhaust the connection pool over time.
 - **Zombie stage leak fixed** (`bot/handlers.py`): Added `clear_stage(task_id)` to `handle_message()`'s `finally` block as a belt-and-suspenders guard against orphaned stage entries in the `_task_stages` dict.
 - **Command blocklist in sandbox** (`tools/sandbox.py`): `run_shell()` now checks commands against 11 destructive patterns (`rm -rf`, `mkfs`, `dd if=`, `shutdown`, `reboot`, `fork bomb`, `chmod -R 777 /`, `systemctl stop/disable`, `launchctl unload`) before execution. Blocked commands return `ExecutionResult(success=False)` with a security warning. Safe commands (single-file rm, normal chmod, pip install, etc.) pass through.
@@ -2394,9 +2573,11 @@ Addresses gaps identified in two independent external reviews (rated 8.2/10 and 
 - **Deployment hardening script** (`scripts/secure_deploy.sh`): New script that sets `chmod 444` on config files (`projects.yaml`, `USECASES.md`, `.env`), creates workspace directories with correct permissions, and installs a daily 3am cron job backing up `workspace/`, `storage/`, and `projects.yaml` with 7-day retention.
 
 **New files:**
+
 - `scripts/secure_deploy.sh` -- deployment hardening script
 
 **Modified files:**
+
 - `bot/handlers.py` -- `async with Bot()` context manager, `clear_stage()` in finally
 - `tools/sandbox.py` -- `_BLOCKED_PATTERNS`, `_check_command_safety()`, wired into `run_shell()`
 - `tools/claude_client.py` -- `_init_usage_db()`, `_persist_usage()`, rewritten `get_usage_summary()`, docstring warning
@@ -2405,12 +2586,14 @@ Addresses gaps identified in two independent external reviews (rated 8.2/10 and 
 ### v2.1 - 2026-02-19 - Bug Fixes (4 bugs found in deep review)
 
 **Bug fixes:**
+
 - **CRITICAL: `/schedule` crash fix** -- Refactored scheduled task callback from a local closure to a module-level `_scheduled_task_run()` function. Local closures cannot be pickled by APScheduler's SQLAlchemyJobStore, causing an immediate `AttributeError` crash on every `/schedule` command. New function accepts only serializable kwargs and creates a fresh `Bot` instance from `config.TELEGRAM_BOT_TOKEN`.
 - **MODERATE: Heredoc delimiter collision fix** -- Changed the shell heredoc delimiter from fixed `AGENTSUTRA_SCRIPT` to randomized `AGENTSUTRA_EOF_<uuid>` in executor's `_execute_project()`. Prevents the edge case where Claude-generated code contains the literal delimiter string, which would cause premature heredoc termination.
 - **MODERATE: Separate scheduler database** -- APScheduler's SQLAlchemyJobStore now uses `storage/scheduler.db` instead of sharing `storage/agentsutra.db` with aiosqlite. Concurrent writes from both SQLAlchemy (sync, APScheduler updates) and aiosqlite (async, task CRUD) to the same SQLite file caused `database is locked` errors under load.
 - **LOW: Stale Bot session fix** -- Resolved by the `/schedule` refactor above. Previously captured `context.bot` from the handler invocation; now creates a fresh `Bot` instance per scheduled execution, avoiding stale HTTP sessions on long-lived schedules.
 
 **Modified files:**
+
 - `bot/handlers.py` -- extracted `_scheduled_task_run()` to module level, added `Bot` import
 - `brain/nodes/executor.py` -- randomized heredoc delimiter, added `uuid` import
 - `scheduler/cron.py` -- separate `scheduler.db` path

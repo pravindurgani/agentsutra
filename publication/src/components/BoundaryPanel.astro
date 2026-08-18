@@ -1,9 +1,10 @@
 ---
 interface Props {
   boundary: string;
+  doesNotProve?: string[];
 }
 
-const { boundary } = Astro.props;
+const { boundary, doesNotProve = [] } = Astro.props;
 ---
 
 <aside class="boundary-panel" aria-labelledby="boundary-title">
@@ -12,5 +13,14 @@ const { boundary } = Astro.props;
     <span class="evidence-stamp evidence-stamp--bounded">BOUNDED</span>
     <h2 id="boundary-title">What this does not prove</h2>
     <p>{boundary}</p>
+    {
+      doesNotProve.length > 0 && (
+        <ul>
+          {doesNotProve.map((item) => (
+            <li>{item}</li>
+          ))}
+        </ul>
+      )
+    }
   </div>
 </aside>

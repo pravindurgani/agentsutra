@@ -1,5 +1,10 @@
 # AgentSutra — Complete Codebase Reference
 
+> **Archive notice:** The Mac mini that hosted this Runtime was reset. The Runtime is frozen,
+> unsupported and not presented as currently operating. This reference records the historical
+> codebase; operational claims require fresh verification before reuse. The active flagship is the
+> evidence-led publication in [`publication/`](publication/).
+
 Every folder, file, and configuration in the AgentSutra project — what it is, what it does, and why it was built this way.
 
 **Generated:** 2026-02-24 (v8.0.0 baseline, updated 2026-03-10 for v9.0.0)

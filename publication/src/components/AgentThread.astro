@@ -96,19 +96,30 @@ const edgeById = new Map(edges.map((edge) => [edge.id, edge]));
     <p class="visually-hidden">Visible text equivalent for the complete diagram:</p>
     <ol class="thread__text">
       {
-        textSteps.map((step) => {
-          const nodeReferences = step.nodeIds
-            .map((nodeId) => nodeById.get(nodeId))
-            .filter((node): node is ThreadNode => Boolean(node));
-          const edgeReferences = step.edgeIds
-            .map((edgeId) => edgeById.get(edgeId))
-            .filter((edge): edge is ThreadEdge => Boolean(edge));
+        textSteps.map((step, stepIndex) => {
           return (
             <li data-node-refs={step.nodeIds.join(' ')} data-edge-refs={step.edgeIds.join(' ')}>
-              <strong>{step.id}</strong>
+              <strong>Step {stepIndex + 1}</strong>
               <span> — {step.summary}</span>
-              <small class="thread__refs">
-                References:{' '}
+            </li>
+          );
+        })
+      }
+    </ol>
+    <details class="thread__specification">
+      <summary>Diagram specification</summary>
+      <ol>
+        {
+          textSteps.map((step) => {
+            const nodeReferences = step.nodeIds
+              .map((nodeId) => nodeById.get(nodeId))
+              .filter((node): node is ThreadNode => Boolean(node));
+            const edgeReferences = step.edgeIds
+              .map((edgeId) => edgeById.get(edgeId))
+              .filter((edge): edge is ThreadEdge => Boolean(edge));
+            return (
+              <li>
+                <strong>{step.id}</strong>:{' '}
                 {[
                   ...nodeReferences.map(
                     (node) => `${threadNodeSemantics[node.kind]} ${node.label} (${node.id})`,
@@ -118,11 +129,11 @@ const edgeById = new Map(edges.map((edge) => [edge.id, edge]));
                       `${threadEdgeSemantics[edge.kind]} ${edge.label ?? `${edge.from} to ${edge.to}`} (${edge.id})`,
                   ),
                 ].join('; ')}
-              </small>
-            </li>
-          );
-        })
-      }
-    </ol>
+              </li>
+            );
+          })
+        }
+      </ol>
+    </details>
   </div>
 </figure>

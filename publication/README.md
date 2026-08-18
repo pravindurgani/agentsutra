@@ -2,11 +2,11 @@
 
 AgentSutra.dev is the canonical public-learning surface for **AgentSutra**: accessible, evidence-bounded Field Notes that turn real AI-system observations into useful lessons for a broad technical audience.
 
-The publication lives in the isolated `publication/` workspace of the AgentSutra repository. The Python runtime remains at the repository root, while Claude Code Multipane remains a separate project. Those systems can supply reviewed source evidence; `publication/` owns the editorial system, public corpus, diagrams, static exports, and publication quality gates.
+The publication lives in the isolated `publication/` workspace of the AgentSutra repository. The historical Python Runtime remains frozen at the repository root, while Claude Code Multipane remains a separate project. Archived experiments can supply source material only when the original evidence remains reviewable; `publication/` owns the editorial system, public corpus, diagrams, static exports, and publication quality gates.
 
 ## Status
 
-Foundation phase. The source is visible in the public AgentSutra repository, but the website remains pre-launch. `FN-000` is synthetic test content, not a public claim or finished lesson. No production deployment or DNS change is part of the foundation import.
+Private-pilot phase. The source is visible in the public AgentSutra repository, but the website remains pre-launch. `FN-000` is synthetic test content, not a public claim or finished lesson. The Runtime is frozen after its former Mac mini host was reset. No production deployment or DNS change is part of this phase.
 
 ## Product contract
 
@@ -35,7 +35,7 @@ typed source records
 canonical static site   deterministic social exports
 ```
 
-Astro produces static HTML. Ordinary Field Notes ship no client JavaScript. AgentSutra Thread diagrams use controlled SVG geometry and always include a visible ordered text equivalent. Cloudflare Workers Static Assets is the intended host, with no server runtime, CMS, database, user accounts, or analytics in the initial release.
+Astro produces static HTML. Ordinary Field Notes ship no client JavaScript. AgentSutra Thread diagrams use controlled SVG geometry and always include a visible ordered text equivalent. Cloudflare Workers Static Assets is the intended host, with no server runtime, CMS, database, user accounts, cookies, or behavioural analytics in the initial release.
 
 The decision to preserve an independent publication boundary inside the AgentSutra monorepo is recorded in [ADR 0003](docs/adr/0003-agent-sutra-monorepo-publication-workspace.md). It supersedes the standalone-repository placement in [ADR 0001](docs/adr/0001-separate-static-publication.md).
 
@@ -102,6 +102,15 @@ Use `AgentSutra` in camel case. The visual system uses a restrained violet-to-cy
 - check: verified outcome
 
 The wordmark remains plain `AgentSutra`; the symbol carries the diagrammatic character.
+
+## Themes
+
+The publication has two expressions of the same Threaded Field Lab system:
+
+- **Night Lab:** the dark inspection chamber used by the current production design;
+- **Daylight Proof:** a warm mineral-paper light theme with dense printing inks.
+
+The browser follows the reader's operating-system preference without client JavaScript. Social and document exports remain explicitly dark so automatic theme preference cannot alter deterministic artifacts.
 
 ## Deployment boundary
 

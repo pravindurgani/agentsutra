@@ -1,15 +1,32 @@
-name: CI
+name: Legacy Runtime integrity
 on:
+  workflow_dispatch:
   push:
     branches: [main]
-    paths-ignore:
-      - "publication/**"
-      - ".github/workflows/publication-ci.yml"
+    paths:
+      - "brain/**"
+      - "bot/**"
+      - "scheduler/**"
+      - "storage/**"
+      - "tests/**"
+      - "tools/**"
+      - "main.py"
+      - "config.py"
+      - "requirements.txt"
+      - ".github/workflows/ci.yml"
   pull_request:
     branches: [main]
-    paths-ignore:
-      - "publication/**"
-      - ".github/workflows/publication-ci.yml"
+    paths:
+      - "brain/**"
+      - "bot/**"
+      - "scheduler/**"
+      - "storage/**"
+      - "tests/**"
+      - "tools/**"
+      - "main.py"
+      - "config.py"
+      - "requirements.txt"
+      - ".github/workflows/ci.yml"
 
 jobs:
   test:
@@ -18,8 +35,8 @@ jobs:
       - uses: actions/checkout@v4
       - uses: actions/setup-python@v5
         with:
-          python-version: '3.11'
-          cache: 'pip'
+          python-version: "3.11"
+          cache: "pip"
       - run: pip install -r requirements.txt
       - run: pip install pytest ruff==0.16.3
       - name: Lint

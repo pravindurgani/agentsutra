@@ -3,11 +3,13 @@ name: AgentSutra publication CI
 on:
   pull_request:
     paths:
+      - "README.md"
       - "publication/**"
       - ".github/workflows/publication-ci.yml"
   push:
     branches: [main]
     paths:
+      - "README.md"
       - "publication/**"
       - ".github/workflows/publication-ci.yml"
 

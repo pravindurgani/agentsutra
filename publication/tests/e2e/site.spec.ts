@@ -25,13 +25,71 @@ test.describe('canonical static experience', () => {
     expect(runtimeRequests, 'ordinary pages must not load third-party runtime assets').toEqual([]);
   });
 
-  test('labels and links the pre-launch specimen as synthetic', async ({ page }) => {
+  test('states the reader promise and keeps the engineering fixture out of the primary path', async ({
+    page,
+  }) => {
     await page.goto('/');
-    const action = page.getByRole('link', { name: 'Inspect FN-000' });
-    await expect(action).toHaveAttribute('href', '#experiment-fn-000');
-    await expect(page.locator('#experiment-fn-000')).toBeVisible();
-    await expect(page.getByText('Synthetic specimen', { exact: true })).toBeVisible();
-    await expect(page.getByText(/FN-000 is deliberately fictional/)).toBeVisible();
+    await expect(page.locator('#home-title')).toContainText('Push the model');
+    await expect(page.locator('.home-hero__lead')).toContainText(
+      'turns first-hand experiments with AI tools and agents into visual Field Notes',
+    );
+    await expect(page.getByText('No public notes have been released yet.')).toBeVisible();
+    await expect(page.getByRole('link', { name: 'See how a Field Note works' })).toHaveAttribute(
+      'href',
+      '#how-field-notes-work',
+    );
+    await expect(page.locator('a[href*="fn-000"], a[href="#experiment-fn-000"]')).toHaveCount(0);
+  });
+
+  test('ships distinct automatic dark and Daylight Proof themes', async ({ page, browserName }) => {
+    test.skip(browserName !== 'chromium', 'Computed theme tokens run once in Chromium');
+    await page.goto('/');
+
+    await expect(page.locator('meta[name="color-scheme"]')).toHaveAttribute(
+      'content',
+      'dark light',
+    );
+    const themeMetadata = await page.locator('meta[name="theme-color"]').evaluateAll((elements) =>
+      elements.map((element) => ({
+        color: element.getAttribute('content'),
+        media: element.getAttribute('media'),
+      })),
+    );
+    expect(themeMetadata).toEqual([
+      { color: '#07090e', media: '(prefers-color-scheme: dark)' },
+      { color: '#f4f0e6', media: '(prefers-color-scheme: light)' },
+    ]);
+
+    const tokens = () =>
+      page.evaluate(() => {
+        const style = getComputedStyle(document.documentElement);
+        return Object.fromEntries(
+          ['--canvas', '--ink', '--surface', '--line', '--violet', '--cyan'].map((token) => [
+            token,
+            style.getPropertyValue(token).trim(),
+          ]),
+        );
+      });
+
+    await page.emulateMedia({ colorScheme: 'dark' });
+    expect(await tokens()).toEqual({
+      '--canvas': '#07090e',
+      '--ink': '#f4f5f2',
+      '--surface': '#0d1119',
+      '--line': '#323a49',
+      '--violet': '#aa8eff',
+      '--cyan': '#64e8f3',
+    });
+
+    await page.emulateMedia({ colorScheme: 'light' });
+    expect(await tokens()).toEqual({
+      '--canvas': '#f4f0e6',
+      '--ink': '#17131b',
+      '--surface': '#ece5d8',
+      '--line': '#b8ada2',
+      '--violet': '#5b2ab8',
+      '--cyan': '#006b73',
+    });
   });
 
   test('supports keyboard skip navigation', async ({ page, browserName }) => {

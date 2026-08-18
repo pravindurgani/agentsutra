@@ -15,8 +15,8 @@ interface Props {
 
 const publicLaunch = process.env.PUBLIC_LAUNCH === '1';
 const {
-  title = 'AgentSutra — AI systems, explained through evidence',
-  description = 'Accessible, evidence-led Field Notes for understanding and using AI systems with better judgement.',
+  title = 'AgentSutra — AI experiments, failures and practical lessons',
+  description = 'First-hand experiments with AI tools and agents, turned into visual Field Notes with evidence, limits, corrections and one practical action.',
   canonicalPath = Astro.url.pathname,
   noindex = !publicLaunch,
   image,
@@ -26,7 +26,30 @@ const {
 
 const origin = Astro.site ?? new URL('https://agentsutra.dev');
 const canonical = new URL(canonicalPath, origin);
+const siteUrl = new URL('/', origin).toString();
 const socialImage = image ? new URL(image, origin).toString() : undefined;
+const siteStructuredData: Record<string, unknown>[] = [
+  {
+    '@context': 'https://schema.org',
+    '@type': 'WebSite',
+    name: 'AgentSutra',
+    url: siteUrl,
+    description:
+      'First-hand AI experiments, failures and corrections turned into practical, inspectable Field Notes.',
+    inLanguage: 'en',
+  },
+  {
+    '@context': 'https://schema.org',
+    '@type': 'Organization',
+    name: 'AgentSutra',
+    url: siteUrl,
+    sameAs: ['https://github.com/pravindurgani/agentsutra'],
+  },
+];
+const structuredItems = [
+  ...siteStructuredData,
+  ...(structuredData ? (Array.isArray(structuredData) ? structuredData : [structuredData]) : []),
+];
 ---
 
 <!doctype html>
@@ -36,8 +59,9 @@ const socialImage = image ? new URL(image, origin).toString() : undefined;
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <meta name="generator" content={Astro.generator} />
     <meta name="description" content={description} />
-    <meta name="theme-color" content="#07090e" />
-    <meta name="color-scheme" content="dark" />
+    <meta name="theme-color" media="(prefers-color-scheme: dark)" content="#07090e" />
+    <meta name="theme-color" media="(prefers-color-scheme: light)" content="#f4f0e6" />
+    <meta name="color-scheme" content="dark light" />
     <meta
       name="robots"
       content={noindex ? 'noindex,nofollow' : 'index,follow,max-image-preview:large'}
@@ -65,9 +89,9 @@ const socialImage = image ? new URL(image, origin).toString() : undefined;
     {socialImage && imageAlt && <meta name="twitter:image:alt" content={imageAlt} />}
     <title>{title}</title>
     {
-      structuredData && (
-        <script is:inline type="application/ld+json" set:html={JSON.stringify(structuredData)} />
-      )
+      structuredItems.map((item) => (
+        <script is:inline type="application/ld+json" set:html={JSON.stringify(item)} />
+      ))
     }
     <slot name="head" />
   </head>
@@ -75,7 +99,7 @@ const socialImage = image ? new URL(image, origin).toString() : undefined;
     <!--
     THESIS: Thread is the reading interface; this field laboratory refuses the generic AI landing-page hero and card stack.
     OWN-WORLD: Ink-black field, paper-white type, cyan evidence, violet judgement, square rules, folios, ledgers, and code-native Thread nodes.
-    STORY: A reader follows one bounded claim through the Thread Map, inspects its evidence and limitation, and chooses a useful next depth.
+    STORY: A reader first understands the practical promise and origin, then follows one lesson from a recognisable problem through evidence, limit and action.
     FIRST VIEWPORT: A narrow field-status rail meets an oversized editorial claim; a persistent Thread runs through the composition and the primary action lands beside the featured record.
     FORM: Threaded Field Lab, first-ranked selected direction, seed 0ea21cef.
     FINISH: production-ready in all states

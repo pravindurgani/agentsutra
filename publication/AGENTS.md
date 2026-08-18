@@ -10,9 +10,13 @@ Read these authorities before changing the publication:
 
 ## Non-negotiable scope
 
-- This `publication/` workspace is the public AgentSutra learning publication. It shares a monorepo with AgentSutra Runtime but keeps separate dependencies, CI, evidence, release gates and deployment state. Claude Code Multipane and private operations remain separate.
+- This `publication/` workspace is the active flagship AgentSutra learning publication. It shares a
+  monorepo with the frozen, unsupported AgentSutra Runtime but keeps separate dependencies, CI,
+  evidence, release gates and deployment state. Claude Code Multipane and private operations remain
+  separate.
 - Never add client names, credentials, hostnames, IP addresses, personal filesystem paths, private runbooks, raw topology or other private operational evidence. Public material may reference only an opaque private evidence ID.
-- Do not change Runtime, Multipane, portfolio, CV, DNS, Cloudflare or social accounts without explicit authorisation for that system.
+- Do not revive, delete or rewrite the frozen Runtime, or change Multipane, portfolio, CV, DNS,
+  Cloudflare or social accounts without explicit authorisation for that system.
 - Use `AgentSutra` camel case. Preserve the S, Thread and fixed decision-node semantics; the Thread must organise information, not decorate it.
 - Ordinary Field Note pages must remain complete without client JavaScript. Every material diagram needs a visible semantic text equivalent.
 - Every material claim needs its truthful reader-facing evidence boundary. Drafts, fixtures, rehearsal material and private references must not enter production routes or `dist/`.

@@ -30,6 +30,7 @@
         - SC-5
       verification: unverified
       observedAt: '2026-08-17'
+      finding: 'The complete synthetic record set passed its declared schema, reference, lifecycle, and route-exclusion checks in the isolated fixture build.'
       method: 'Parse the complete fixture set, validate every strict schema, then verify all cross-record references and exact central claims.'
       limitation: 'Passing the synthetic fixture cannot establish that a future lesson is accurate, accessible in context, or ready to publish.'
   boundary:

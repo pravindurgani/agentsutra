@@ -105,7 +105,7 @@ AgentSutra is a reading interface before it is a landing page. A continuous Thre
 
 Threaded Field Lab is the selected production form from exploration seed `0ea21cef`.
 
-The homepage tells one fixed story: prelaunch boundary → Thread Map → explicitly synthetic `FN-000` experiment → truthful publication state → The Sutra and the next useful depth. Its first viewport pairs a narrow status rail with the claim and keeps “Inspect FN-000” as the primary action. The reviewer disposition for this production baseline is ship; all five material findings are resolved across the implemented states.
+The homepage tells one fixed story: concrete reader promise → authentic experimental origin → plain lesson anatomy → truthful publication state → The Sutra and the next useful depth. Its first viewport pairs a narrow status rail with the promise. The synthetic `FN-000` fixture is no longer a primary reader path; it remains isolated engineering evidence and is explained only in the Method context.
 
 Signal Workshop and Kinetic Manuscript remain unblended decision evidence. Signal Workshop's instrument chrome would pull the system toward a generic developer observability console; Kinetic Manuscript's typography and editorial drama would reduce repeatability for long technical records and small screens. Importing either metaphor would collapse the controlled comparison into a familiar editorial dashboard. Refine rhythm, scale, contrast, diagram semantics, density and export framing only inside Threaded Field Lab.
 
@@ -149,6 +149,19 @@ The palette is an ink-and-paper dark field with accents assigned to epistemic ro
 
 **The Text-First State Rule.** Every colour-coded state also has a visible word, shape or line treatment. Colour reinforces meaning and never carries it alone.
 
+### Daylight Proof
+
+Light mode is not an inverted Night Lab or a pale SaaS theme. It is the same Field Lab laid out on
+an exposed proof sheet: warm mineral paper (`#f4f0e6`), near-black aubergine ink (`#17131b`) and
+dense violet, teal, amber, mint and rose printing inks. Full-width proof fields remain flat and
+structural. The Thread keeps the same intent → judgement → outcome semantics.
+
+Do not add fake paper grain, shadows, glass, pastel cards or light-theme decoration. Meaningful
+rules, controls and graph paths use the strong rule or a semantic ink; the pale rule is decorative
+only. Ordinary pages follow `prefers-color-scheme` with no JavaScript. Social/document exports stay
+explicitly dark and deterministic. Forced-colour and print modes continue to override both screen
+themes.
+
 ## Typography
 
 - **Display font:** Recursive AgentSutra, with a system sans-serif fallback
@@ -175,7 +188,7 @@ Recursive is self-hosted as `recursive-v1.085-latin-basic.woff2`, displayed with
 
 The main shell is capped at 90rem with 1rem side gutters, tightening to 0.625rem below 23rem. Reading text stops at 72ch. Desktop sections use asymmetric 3/9 or 2/7 divisions; the homepage first viewport uses 12 columns, placing the status rail in the opening columns and the claim across the centre while the Thread occupies the right edge.
 
-The homepage sequence is structural and must remain intact: status and claim, Thread Map, `FN-000`, publication register, The Sutra. The page-spanning Thread sits on the shell's right boundary with a strong neutral rule, cyan overlay and semantic nodes at section transitions. At widths below 47.99rem, multi-column layouts become a single reading column, the navigation stops being sticky and the Thread diagram switches from the wide to the compact SVG. At 20rem/320px the document still reflows without horizontal scrolling.
+The homepage sequence is structural and must remain intact: status and promise, origin, Field Note anatomy, lesson archive, The Sutra. The page-spanning Thread sits on the shell's right boundary with a strong neutral rule, cyan overlay and semantic nodes at section transitions. At widths below 47.99rem, multi-column layouts become a single reading column, the navigation stops being sticky and the Thread diagram switches from the wide to the compact SVG. At 20rem/320px the document still reflows without horizontal scrolling.
 
 Vertical rhythm uses the staged spacing scale, with the largest responsive step separating major fields. Dense records use rows, rules and aligned terms rather than isolated boxes.
 
@@ -234,6 +247,8 @@ Print changes the system to black on white, removes site navigation, calls to ac
 ### Do:
 
 - **Do** begin with the reader's problem and keep evidence, limitation and practical transfer in the same Thread.
+- **Do** make the first viewport answer what AgentSutra is, what the reader gains and whether real
+  lessons exist yet.
 - **Do** use folios, ledgers, square rules and semantic geometry to organise dense records.
 - **Do** preserve the explicit prelaunch and synthetic status until real evidence passes its gates.
 - **Do** verify every new pattern at 320px, with keyboard, reduced motion, forced colours, no JavaScript and print.
@@ -242,7 +257,8 @@ Print changes the system to black on white, removes site navigation, calls to ac
 ### Don't:
 
 - **Don't** blend Signal Workshop's instrument chrome or Kinetic Manuscript's typography into the production world.
-- **Don't** introduce generic AI gradients, generated decoration, glass panels, rounded card stacks or a fabricated author persona.
+- **Don't** introduce generic AI gradients, generated decoration, fake paper texture, glass panels,
+  rounded card stacks or a fabricated author persona.
 - **Don't** turn the Thread into wallpaper, a progress claim or an animation that carries required meaning.
 - **Don't** use an evidence stamp unless the underlying record earns that exact word.
 - **Don't** hide a limitation, correction or synthetic fixture behind visual confidence.

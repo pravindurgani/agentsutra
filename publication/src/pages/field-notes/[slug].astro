@@ -9,6 +9,7 @@ import SourcesList, { type SourceItem } from '../../components/SourcesList.astro
 import UseToday from '../../components/UseToday.astro';
 import BaseLayout from '../../layouts/BaseLayout.astro';
 import { getVisibleFieldNotes, loadPublicationGraph } from '../../lib/content';
+import { getPublicEvidencePresentation, publicEvidenceMeanings } from '../../lib/public-evidence';
 import { selectVisibleRelatedNotes } from '../../lib/related-notes';
 
 export async function getStaticPaths() {
@@ -62,6 +63,7 @@ const sources: SourceItem[] = evidence.evidence.map((item) => {
 });
 
 const canonicalPath = `/field-notes/${note.data.slug}/`;
+const evidencePresentation = getPublicEvidencePresentation(evidence);
 const structuredData = {
   '@context': 'https://schema.org',
   '@type': 'Article',
@@ -91,13 +93,15 @@ const structuredData = {
       difficulty={note.data.difficulty}
       publishedAt={note.data.dates.published}
       reviewedAt={note.data.dates.reviewed}
+      evidenceStatus={evidencePresentation.statusLabel}
+      evidenceMeaning={publicEvidenceMeanings[evidencePresentation.statusLabel]}
     />
 
     <div class="shell page-section">
       <div class="prose field-note__opening">
         <h2>The problem</h2>
         <p>{note.data.beats.problem}</p>
-        <h2>The naïve model</h2>
+        <h2>What you might expect</h2>
         <p>{note.data.beats.naiveModel}</p>
         <h2>What is actually happening</h2>
         <p>{note.data.beats.mechanism}</p>
@@ -112,21 +116,26 @@ const structuredData = {
       />
 
       <div class="prose">
-        <h2>The explanation</h2>
+        <h2>Why this happens</h2>
         <Content />
-        <h2>Evidence in one sentence</h2>
+        <h2>What the evidence showed</h2>
         <p>{note.data.beats.evidenceSummary}</p>
       </div>
 
       <EvidencePanel pack={evidence} />
-      <BoundaryPanel boundary={evidence.boundary.statement} />
+      <BoundaryPanel
+        boundary={evidence.boundary.statement}
+        doesNotProve={evidence.boundary.doesNotProve}
+      />
       <UseToday action={evidence.transfer.action} precondition={evidence.transfer.precondition} />
       <MemoryLine line={note.data.beats.memoryLine} />
 
       <section class="content-panel depth-door" aria-labelledby="depth-door-title">
-        <p class="content-panel__label">Optional technical depth</p>
+        <p class="content-panel__label">Inspect the technical record</p>
         <div>
-          <h2 id="depth-door-title">Go one level deeper</h2><p>{note.data.beats.depthDoor}</p>
+          <h2 id="depth-door-title">Methods, sources and implementation detail</h2><p>
+            {note.data.beats.depthDoor}
+          </p>
         </div>
       </section>
 
@@ -138,18 +147,6 @@ const structuredData = {
           <h2 id="editorial-title">Disclosure and corrections</h2>
           <p>{note.data.aiDisclosure}</p>
           <p><strong>Correction status:</strong> {evidence.correctionStatus}.</p>
-          {
-            evidence.boundary.doesNotProve.length > 0 && (
-              <details>
-                <summary>Detailed evidence limits</summary>
-                <ul>
-                  {evidence.boundary.doesNotProve.map((item) => (
-                    <li>{item}</li>
-                  ))}
-                </ul>
-              </details>
-            )
-          }
         </div>
       </section>
 

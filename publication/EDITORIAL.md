@@ -31,6 +31,21 @@ Use this default sequence when it fits the material:
 
 This is a grammar, not a quota. Omit a stage that does not improve the lesson.
 
+## First-visit comprehension
+
+The homepage and utility routes must explain the reader benefit before the publication machinery.
+A first-time visitor should understand, without opening a technical record:
+
+- AgentSutra turns first-hand AI experiments, failures and corrections into practical lessons;
+- a Thread connects the problem, mechanism, evidence, limit and action;
+- no public Field Notes exist while the private-pilot notice is present;
+- an engineering fixture is not a lesson or a real-world claim;
+- deeper methods, sources, versions and corrections remain available for inspection.
+
+Do not use `canonical`, `publication graph`, `schema parsing`, `fixture-only`, `risk class`,
+`evidence pack`, `lifecycle` or `gates` on the homepage, Start Here or Field Notes index unless the
+term is immediately translated into ordinary language.
+
 ## Public evidence language
 
 Use plain-language status stamps on public surfaces:

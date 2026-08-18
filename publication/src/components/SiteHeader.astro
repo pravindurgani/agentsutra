@@ -5,10 +5,9 @@ interface Props {
 
 const { currentPath } = Astro.props;
 const nav = [
-  { href: '/#thread-map', label: 'Thread Map' },
   { href: '/start-here/', label: 'Start here' },
   { href: '/field-notes/', label: 'Field Notes' },
-  { href: '/method/', label: 'Method' },
+  { href: '/method/', label: 'How it works' },
 ];
 const isCurrent = (href: string) =>
   href === '/field-notes/' ? currentPath.startsWith('/field-notes/') : currentPath === href;

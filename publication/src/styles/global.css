@@ -58,6 +58,7 @@
     --surface-raised: #141a25;
     --line: #323a49;
     --line-strong: #687387;
+    --field-rule: rgb(244 245 242 / 0.2);
     --violet: #aa8eff;
     --violet-field: #211c3f;
     --periwinkle: #8eafff;
@@ -68,6 +69,7 @@
     --amber: #f4c979;
     --amber-field: #302714;
     --rose: #ff9fa8;
+    --rose-field: #361b25;
     --measure: 90rem;
     --measure-text: 72ch;
     --space-1: 0.35rem;
@@ -77,6 +79,32 @@
     --space-5: 2.25rem;
     --space-6: 3.5rem;
     --space-7: clamp(4.5rem, 9vw, 9rem);
+  }
+
+  @media (prefers-color-scheme: light) {
+    :root {
+      color-scheme: light;
+      --ink: #17131b;
+      --ink-muted: #4f4956;
+      --ink-faint: #696270;
+      --canvas: #f4f0e6;
+      --surface: #ece5d8;
+      --surface-raised: #fbf8f0;
+      --line: #b8ada2;
+      --line-strong: #6c6370;
+      --field-rule: rgb(23 19 27 / 0.22);
+      --violet: #5b2ab8;
+      --violet-field: #e8defa;
+      --periwinkle: #3c56a6;
+      --cyan: #006b73;
+      --cyan-field: #d8eff0;
+      --mint: #147054;
+      --mint-field: #dcefe5;
+      --amber: #784b00;
+      --amber-field: #f3e4bf;
+      --rose: #a3264d;
+      --rose-field: #f4dce4;
+    }
   }
 }
 
@@ -463,7 +491,7 @@
     margin-block: 0.35rem;
     color: var(--violet);
     font-size: 1rem;
-    letter-spacing: 0.12em;
+    letter-spacing: 0.08em;
   }
 
   .home-hero__copy {
@@ -472,7 +500,7 @@
   }
 
   .home-hero h1 {
-    max-width: 12ch;
+    max-width: 14ch;
     font-size: clamp(3.5rem, 7.7vw, 6rem);
     font-variation-settings:
       'CASL' 0.24,
@@ -593,6 +621,42 @@
     display: grid;
     grid-template-columns: minmax(12rem, 3fr) minmax(0, 9fr);
     gap: clamp(2rem, 6vw, 6rem);
+  }
+
+  .origin-section {
+    position: relative;
+    color: var(--ink);
+    background: var(--violet-field);
+    border-top-color: var(--violet);
+  }
+
+  .origin-section__grid {
+    display: grid;
+    grid-template-columns: minmax(12rem, 3fr) minmax(0, 9fr);
+    gap: clamp(2rem, 6vw, 6rem);
+    align-items: start;
+  }
+
+  .origin-section__label {
+    padding-top: 0.75rem;
+    border-top: 1px solid var(--violet);
+    color: var(--violet);
+    font-family: var(--font-mono);
+    font-size: 0.82rem;
+    font-variation-settings: 'MONO' 1;
+    font-weight: 760;
+    text-transform: uppercase;
+  }
+
+  .origin-section h2 {
+    max-width: 18ch;
+  }
+
+  .origin-section h2 + p {
+    max-width: 52rem;
+    margin-top: var(--space-5);
+    color: var(--ink-muted);
+    font-size: clamp(1.08rem, 1.7vw, 1.32rem);
   }
 
   .thread-map__intro p {
@@ -727,6 +791,30 @@
     line-height: 1.5;
   }
 
+  .thread__specification {
+    margin-top: var(--space-4);
+    padding-block: var(--space-3);
+    border-bottom: 1px solid var(--line);
+    color: var(--ink-muted);
+    font-size: 0.82rem;
+  }
+
+  .thread__specification summary {
+    width: max-content;
+    color: var(--cyan);
+    font-family: var(--font-mono);
+    font-variation-settings: 'MONO' 1;
+  }
+
+  .thread__specification ol {
+    margin-block: var(--space-3) 0;
+    padding-left: 1.4rem;
+  }
+
+  .thread__specification li + li {
+    margin-top: var(--space-2);
+  }
+
   .specimen-section {
     color: var(--ink);
     background: var(--violet-field);
@@ -815,7 +903,7 @@
     grid-template-columns: minmax(6rem, 0.35fr) 1fr;
     gap: 1rem;
     padding-block: 1rem;
-    border-bottom: 1px solid rgb(244 245 242 / 0.2);
+    border-bottom: 1px solid var(--field-rule);
   }
 
   .specimen__ledger dt {
@@ -1048,6 +1136,31 @@
     font-size: clamp(1.15rem, 2.2vw, 1.5rem);
   }
 
+  .field-note-header__answer-label {
+    margin-top: var(--space-5);
+    color: var(--cyan);
+    font-family: var(--font-mono);
+    font-size: 0.76rem;
+    font-variation-settings: 'MONO' 1;
+    font-weight: 760;
+    text-transform: uppercase;
+  }
+
+  .field-note-header__answer-label + .field-note-header__answer {
+    margin-top: var(--space-2);
+  }
+
+  .field-note-header__evidence {
+    display: flex;
+    max-width: 42rem;
+    flex-wrap: wrap;
+    gap: var(--space-3);
+    align-items: center;
+    margin-top: var(--space-4);
+    color: var(--ink-muted);
+    font-size: 0.9rem;
+  }
+
   .field-note-header__meta {
     border-top: 1px solid var(--line-strong);
   }
@@ -1128,6 +1241,12 @@
     border-top: 1px solid var(--line);
   }
 
+  .evidence-status-meaning {
+    max-width: 48rem;
+    margin-top: var(--space-3);
+    color: var(--ink-muted);
+  }
+
   .central-claim strong,
   .measurement-record strong {
     color: var(--cyan);
@@ -1198,6 +1317,14 @@
 
   .boundary-panel p {
     margin-top: var(--space-3);
+    color: var(--ink-muted);
+  }
+
+  .boundary-panel ul {
+    display: grid;
+    gap: var(--space-2);
+    margin-block: var(--space-4) 0;
+    padding-left: 1.25rem;
     color: var(--ink-muted);
   }
 
@@ -1277,6 +1404,32 @@
   .definition-list dd {
     padding-block: 1rem;
     border-bottom: 1px solid var(--line);
+  }
+
+  .trust-list {
+    display: grid;
+    gap: var(--space-2);
+    padding-left: 1.3rem;
+  }
+
+  .method-fixture-note {
+    margin-top: var(--space-7);
+    padding: var(--space-4);
+    border: 1px solid var(--amber);
+    color: var(--ink-muted);
+    background: var(--amber-field);
+  }
+
+  .method-fixture-note strong {
+    color: var(--amber);
+    font-family: var(--font-mono);
+    font-size: 0.78rem;
+    font-variation-settings: 'MONO' 1;
+    text-transform: uppercase;
+  }
+
+  .method-fixture-note p {
+    margin-top: var(--space-2);
   }
 
   .definition-list dt {
@@ -1373,6 +1526,7 @@
     }
 
     .thread-map__grid,
+    .origin-section__grid,
     .publication-status__grid,
     .section-grid,
     .page-intro__grid {
@@ -1437,6 +1591,7 @@
     .site-footer__inner,
     .home-hero__grid,
     .thread-map__grid,
+    .origin-section__grid,
     .publication-status__grid,
     .section-grid,
     .page-intro__grid,
@@ -1485,6 +1640,7 @@
     }
 
     .thread-map__diagram,
+    .origin-section__grid > div,
     .publication-status > .shell > :not(header),
     .section-grid > :not(h2),
     .specimen__ledger,
@@ -1646,6 +1802,7 @@
       --surface-raised: Canvas;
       --line: CanvasText;
       --line-strong: CanvasText;
+      --field-rule: CanvasText;
       --violet: LinkText;
       --violet-field: Canvas;
       --periwinkle: LinkText;
@@ -1656,6 +1813,7 @@
       --amber: CanvasText;
       --amber-field: Canvas;
       --rose: CanvasText;
+      --rose-field: Canvas;
     }
 
     .button--primary {
@@ -1709,7 +1867,10 @@
     .site-footer nav,
     .home-hero__actions,
     .home-hero__thread,
-    .skip-link {
+    .skip-link,
+    .home-field::before,
+    .home-field::after,
+    .home-field > section::after {
       display: none;
     }
 

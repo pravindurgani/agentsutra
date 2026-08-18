@@ -9,28 +9,34 @@ const featured = latest[0];
 const publicLaunch = process.env.PUBLIC_LAUNCH === '1';
 const threadNodes = [
   {
-    id: 'intent',
-    label: 'Intent',
+    id: 'problem',
+    label: 'Problem',
     kind: 'state' as const,
-    description: 'Begin with a real question or task.',
+    description: 'Start with a situation you recognise.',
   },
   {
-    id: 'reason',
-    label: 'Reason',
+    id: 'mechanism',
+    label: 'Mechanism',
     kind: 'process' as const,
-    description: 'Turn the problem into a mechanism you can inspect.',
+    description: 'Explain what the AI system is actually doing.',
   },
   {
-    id: 'judge',
-    label: 'Judge',
+    id: 'evidence',
+    label: 'Evidence',
+    kind: 'process' as const,
+    description: 'Show what was observed, repeated or measured.',
+  },
+  {
+    id: 'limit',
+    label: 'Limit',
     kind: 'decision' as const,
-    description: 'Test the claim against evidence and its boundary.',
+    description: 'Name what the evidence cannot establish.',
   },
   {
-    id: 'outcome',
-    label: 'Outcome',
+    id: 'action',
+    label: 'Action',
     kind: 'verified' as const,
-    description: 'Leave with one action you can use.',
+    description: 'Leave with one change you can try today.',
   },
 ];
 ---
@@ -49,20 +55,20 @@ const threadNodes = [
               </>
             ) : (
               <>
-                <p>Private pilot</p>
-                <strong>FIELD / 00</strong>
-                <p>No public Field Notes yet. Three private pilots must pass before launch.</p>
+                <p>Pilot preparation</p>
+                <strong>NO PUBLIC NOTES YET</strong>
+                <p>Three pilot lessons must be completed and reader-tested before launch.</p>
               </>
             )
           }
         </aside>
         <div class="home-hero__copy">
-          <h1 id="home-title">Follow the Thread.<br />Keep the boundary in view.</h1>
+          <h1 id="home-title">Push the model.<br />Inspect the failure.<br />Keep the lesson.</h1>
           <p class="home-hero__lead">
             {
               publicLaunch
-                ? 'AgentSutra is a public field laboratory for understanding AI systems. Each Field Note traces one reviewed experiment, failure or correction into a practical decision.'
-                : 'AgentSutra is a public field laboratory for understanding AI systems. Each future Field Note will trace one reviewed experiment, failure or correction into a practical decision.'
+                ? 'AgentSutra turns first-hand experiments with AI tools and agents into visual Field Notes: what happened, why it happened, what the evidence cannot prove, and one thing you can use today.'
+                : 'AgentSutra turns first-hand experiments with AI tools and agents into visual Field Notes: what happened, why it happened, what the evidence cannot prove, and one thing you can use today. No public notes have been released yet.'
             }
           </p>
           <nav class="home-hero__actions" aria-label="Start exploring">
@@ -74,13 +80,13 @@ const threadNodes = [
                   </a>
                 ) : null
               ) : (
-                <a class="button button--primary" href="#experiment-fn-000">
-                  Inspect FN-000
+                <a class="button button--primary" href="#how-field-notes-work">
+                  See how a Field Note works
                 </a>
               )
             }
             <a class="text-link" href="/method/"
-              >Read the publication method <span aria-hidden="true">→</span></a
+              >How claims are checked <span aria-hidden="true">→</span></a
             >
           </nav>
         </div>
@@ -93,84 +99,46 @@ const threadNodes = [
     </section>
 
     <section
-      class="page-section thread-map"
-      id="thread-map"
-      aria-labelledby="thread-map-title"
+      class="page-section origin-section"
+      aria-labelledby="origin-title"
       data-thread-stage="reason"
+    >
+      <div class="origin-section__grid shell">
+        <p class="origin-section__label">Why AgentSutra exists</p>
+        <div>
+          <h2 id="origin-title">The ambitious system did not arrive. The useful questions did.</h2>
+          <p>
+            AgentSutra began as an attempt to push general-purpose AI towards persistent, useful
+            work. It did not become a finished autonomous system. It produced failures, revisions
+            and practical questions worth examining. This publication keeps that history visible and
+            teaches only what the evidence can support.
+          </p>
+        </div>
+      </div>
+    </section>
+
+    <section
+      class="page-section thread-map"
+      id="how-field-notes-work"
+      aria-labelledby="thread-map-title"
+      data-thread-stage="judge"
     >
       <div class="thread-map__grid shell">
         <header class="thread-map__intro">
-          <h2 id="thread-map-title">The Thread Map</h2>
+          <h2 id="thread-map-title">What every Field Note answers</h2>
           <p>
-            One fixed grammar keeps intent, reasoning, judgement and outcome connected. Shape and
-            labels carry the meaning; colour only reinforces it.
+            Read through the action for a complete practical lesson. Continue into sources, versions
+            and corrections when you want to inspect the technical record.
           </p>
         </header>
         <div class="thread-map__diagram">
-          <AgentThread title="How a Field Note earns an outcome" nodes={threadNodes} />
+          <AgentThread title="One lesson, from problem to action" nodes={threadNodes} />
         </div>
       </div>
     </section>
 
     {
-      !publicLaunch ? (
-        <section
-          class="page-section specimen-section"
-          id="experiment-fn-000"
-          aria-labelledby="specimen-title"
-          data-thread-stage="judge"
-        >
-          <article class="specimen shell">
-            <header class="specimen__header">
-              <p class="specimen__folio">Experiment / FN-000</p>
-              <div class="specimen__stamps" aria-label="Evidence status">
-                <span>Synthetic specimen</span>
-                <span class="evidence-stamp evidence-stamp--bounded">BOUNDED</span>
-              </div>
-              <h2 id="specimen-title">
-                Stress the publishing contract before trusting the pipeline.
-              </h2>
-              <p>
-                FN-000 is deliberately fictional. It exercises schemas, long copy, cross-record
-                links and evidence boundaries; it makes no claim about a real AI system or
-                production result.
-              </p>
-            </header>
-            <dl class="specimen__ledger">
-              <div>
-                <dt>Question</dt>
-                <dd>Can one synthetic record pressure-test the complete publication graph?</dd>
-              </div>
-              <div>
-                <dt>What ran</dt>
-                <dd>Strict schema parsing, reference matching and fixture-only route exclusion.</dd>
-              </div>
-              <div>
-                <dt>What passed</dt>
-                <dd>The declared synthetic data contracts in the explicit fixture build.</dd>
-              </div>
-              <div>
-                <dt>Boundary</dt>
-                <dd>
-                  No audience comprehension, real-world accuracy, security or public-release claim.
-                </dd>
-              </div>
-              <div>
-                <dt>Transfer</dt>
-                <dd>
-                  Repeat the validation graph with real, reviewed evidence before publishing a Field
-                  Note.
-                </dd>
-              </div>
-            </dl>
-            <p class="specimen__action">
-              <a class="text-link" href="/method/">
-                See the evidence and correction method <span aria-hidden="true">→</span>
-              </a>
-            </p>
-          </article>
-        </section>
-      ) : featured ? (
+      publicLaunch && featured ? (
         <section
           class="page-section specimen-section"
           id="featured-field-note"
@@ -232,8 +200,8 @@ const threadNodes = [
           <p>
             {
               publicLaunch
-                ? 'Canonical lessons appear here only after their evidence and privacy gates pass.'
-                : 'Canonical lessons will appear here only after their evidence and privacy gates pass.'
+                ? 'Each reviewed lesson starts with a practical AI problem and keeps its evidence, limit and action together.'
+                : 'No public Field Notes yet. Three pilot lessons must pass comprehension, evidence, privacy and accessibility review before launch.'
             }
           </p>
         </header>
@@ -255,11 +223,11 @@ const threadNodes = [
             </div>
           ) : (
             <div class="pilot-empty">
-              <strong>{publicLaunch ? 'Release blocked' : '0 published'}</strong>
+              <strong>{publicLaunch ? 'Release blocked' : 'Pilot preparation'}</strong>
               <p>
                 {publicLaunch
                   ? 'The public profile requires at least one evidence-reviewed Field Note.'
-                  : 'The first evidence-reviewed Field Notes are in private pilot production.'}
+                  : 'The engineering fixture is not a lesson. The archive opens only when a real note survives reader and evidence review.'}
               </p>
             </div>
           )
@@ -274,10 +242,10 @@ const threadNodes = [
 
     <section class="home-sutra" aria-labelledby="home-sutra-title" data-thread-stage="outcome">
       <div class="home-sutra__grid shell">
-        <p>The Sutra</p>
-        <blockquote id="home-sutra-title">A useful claim carries its limit with it.</blockquote>
+        <p>The Sutra · one sentence to remember</p>
+        <blockquote id="home-sutra-title">Follow the Thread. Keep the limit in view.</blockquote>
         <a class="text-link" href="/start-here/"
-          >Choose a way into the field <span aria-hidden="true">→</span></a
+          >Choose how deeply to read <span aria-hidden="true">→</span></a
         >
       </div>
     </section>

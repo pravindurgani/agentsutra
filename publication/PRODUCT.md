@@ -38,7 +38,9 @@ AgentSutra is a public field laboratory, not a feed of AI tips. One validated so
 - Every material diagram has a visible semantic text equivalent.
 - Drafts, fixtures, private evidence, unresolved high-risk claims, and unsafe corrections fail closed.
 - The site, platform artifacts, and print output derive from one validated publication graph.
-- AgentSutra Runtime and Claude Code Multipane remain separate evidence-producing projects.
+- Archived experiments may inform a Field Note only when the original evidence remains reviewable.
+  AgentSutra Runtime is frozen and is not presented as a current operational system. Claude Code
+  Multipane remains a separate project.
 - No CMS, database, account system, comments, analytics, automated posting, SSR, React shell, or production WebGL without a measured need and an accepted ADR.
 - Cloudflare commands remain dry-run only until a separate release decision. This sprint does not push, deploy, change DNS, or publish.
 
@@ -54,7 +56,8 @@ AgentSutra is a public field laboratory, not a feed of AI tips. One validated so
 ## Evidence on hand
 
 - A synthetic unpublished stress fixture, `FN-000`, exercises the publication graph and is never a public claim.
-- The AgentSutra Runtime and Claude Code Multipane can supply reviewed public evidence after their issue-specific truth and privacy gates pass.
+- The frozen AgentSutra Runtime and the separate Claude Code Multipane project may supply historical
+  material only after an issue-specific truth, provenance and privacy review.
 - Private operational evidence may be referenced only through opaque identifiers. It is not copied into the `publication/` workspace.
 - The public-learning programme and production brief define the initial audience, weekly cadence, identity split, editorial grammar, and launch threshold.
 - There are no published Field Notes, testimonials, audience metrics, or launch claims yet. Future work must not fabricate them.
